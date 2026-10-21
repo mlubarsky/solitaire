@@ -32,7 +32,7 @@ src/
     useDrag.ts            # pointer-event drag/drop + click-vs-drag threshold
     hitTest.ts            # pure: pick drop target by max overlap (unit-tested)
     layout.ts             # pure: card size, fan offsets, column compression (unit-tested)
-    Celebration.tsx       # canvas bouncing-card win animation
+    Confetti.tsx          # canvas confetti burst on a win
     WinDialog.tsx
     ConfirmDialog.tsx
     styles/*.css
@@ -49,10 +49,15 @@ src/
     PixelBackground.tsx   # renders a scene buffer to a <canvas>, pixelated, cover
     FeltBackground.tsx
   ui/cards/
-    CardFace.tsx          # rank top-left, suit top-right, big suit or portrait center
-    FacePortrait.tsx      # J/Q/K headshot SVGs (king/queen/jack, per-suit colors)
+    CardFace.tsx          # pixel face: rank top-left, suit top-right, big suit or portrait center
+    pixelGlyphs.ts        # rank font and suit bitmaps, bitmap → SVG path
+    PixelPortrait.tsx     # J/Q/K pixel headshots and their colors
     CardBack.tsx
     suitPaths.ts          # SVG path data for the 4 suits
+  ui/title/
+    TitleScreen.tsx       # 8-bit title screen: table showcase, title, card fan, PLAY
+    PixelText.tsx         # PixelText, Pixel (wrapping UI text) and the outlined arcade title
+    pixelFont.ts          # 5×7 and bold 9-tall pixel fonts, text → bitmap, outline
   testHooks.ts            # window.__solitaire in DEV/test only
   main.tsx
 tests/                    # or colocated *.test.ts(x) next to sources — pick one and be consistent

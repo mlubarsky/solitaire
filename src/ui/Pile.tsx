@@ -1,6 +1,7 @@
 import type { CSSProperties, PointerEvent, ReactNode, Ref } from 'react';
-import type { Card as CardModel } from '../engine';
+import { FOUNDATION_SUITS, type Card as CardModel, type Suit } from '../engine';
 import { Card } from './Card';
+import { bitmapPath, bitmapWidth, LARGE_SUITS } from './cards/pixelGlyphs';
 import { wasteFan } from './layout';
 
 export interface PileCardHandlers {
@@ -98,17 +99,31 @@ export function WastePile(props: CommonProps & { fanDx: number; fanDy: number })
   );
 }
 
+/** A faint pixel suit in an empty foundation showing which suit belongs there. */
+function SlotSuit({ suit }: { suit: Suit }) {
+  const bitmap = LARGE_SUITS[suit];
+  const cell = 100 / Math.max(bitmapWidth(bitmap), bitmap.length);
+  const x = 50 - (bitmapWidth(bitmap) * cell) / 2;
+  const y = 50 - (bitmap.length * cell) / 2;
+  return (
+    <svg className="slot-suit" viewBox="0 0 100 100" data-suit={suit}>
+      <path d={bitmapPath(bitmap, x, y, cell)} shapeRendering="crispEdges" />
+    </svg>
+  );
+}
+
 export function FoundationPile(props: CommonProps & { index: number }) {
+  const suit = FOUNDATION_SUITS[props.index] as Suit;
   return (
     <PileFrame
       pileKey={props.pileKey}
       className="foundation"
-      label={`Foundation ${props.index + 1}`}
+      label={`Foundation ${props.index + 1}, ${suit}`}
       style={props.style}
       pileRef={props.pileRef}
     >
       <div className="slot foundation-slot" aria-hidden="true">
-        <span>A</span>
+        <SlotSuit suit={suit} />
       </div>
       <StackedCards {...props} />
     </PileFrame>

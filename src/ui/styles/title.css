@@ -1,0 +1,295 @@
+/* ---- Title screen ---- */
+
+.title-screen {
+  --title-gold: #f2c14e;
+  --title-cream: #f3ead2;
+  --title-ink: #2e1c08;
+
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  overflow: hidden;
+  background: #05070a;
+  color: var(--title-cream);
+}
+
+/* Cycling, animated table backgrounds. */
+.title-bg {
+  position: absolute;
+  inset: 0;
+  contain: strict;
+}
+
+.title-bg-scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  will-change: transform;
+}
+
+.title-bg-scene.current {
+  animation: title-fade-in var(--fade-ms) steps(6, end);
+}
+
+/* Darken the edges and the top/bottom so the title and labels read on any scene. */
+.title-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, transparent 35%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(rgba(0, 0, 0, 0.45), transparent 28%, transparent 70%, rgba(0, 0, 0, 0.6));
+}
+
+/* Faint CRT scanlines. */
+.title-crt {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+}
+
+.title-center {
+  position: absolute;
+  inset: 0 0 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.6vh, 26px);
+  padding: 0 16px;
+}
+
+/* A fan of pixel cards above the title, gently bobbing. */
+.title-cards {
+  position: relative;
+  width: clamp(200px, 34vw, 340px);
+  height: clamp(86px, 15vw, 132px);
+  margin-bottom: -8px;
+}
+
+.title-card {
+  --angle: calc((var(--i) - 1.5) * 13deg);
+
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: clamp(54px, 8.4vw, 86px);
+  aspect-ratio: 5 / 7;
+  overflow: hidden;
+  margin-left: calc(clamp(54px, 8.4vw, 86px) / -2);
+  border-radius: 7%;
+  background: #fff;
+  box-shadow:
+    0 0 0 2px var(--title-ink),
+    0 6px 0 rgba(0, 0, 0, 0.35);
+  transform: translateX(calc((var(--i) - 1.5) * 62%)) rotate(var(--angle));
+  transform-origin: 50% 120%;
+  animation:
+    title-card-in 600ms steps(6, end) both,
+    title-bob 2.4s steps(8, end) calc(600ms + var(--i) * 300ms) infinite alternate;
+}
+
+.title-logo {
+  margin: 0;
+  line-height: 0;
+  animation: title-drop 700ms steps(7, end) both;
+}
+
+.pixel-title {
+  width: min(88vw, 760px);
+  height: auto;
+  filter: drop-shadow(0 6px 0 rgba(0, 0, 0, 0.35));
+}
+
+.pixel-text {
+  display: block;
+  width: auto;
+  fill: currentColor;
+}
+
+.title-sub {
+  height: clamp(10px, 1.5vw, 14px);
+  color: var(--title-cream);
+  opacity: 0.85;
+}
+
+/* A chunky pixel button with stepped corners and a pressable bevel. */
+.title-play {
+  --notch: 6px;
+
+  margin-top: clamp(4px, 1.4vh, 12px);
+  padding: clamp(14px, 2vw, 20px) clamp(30px, 4.4vw, 46px);
+  border: 0;
+  background: var(--title-gold);
+  color: var(--title-ink);
+  cursor: pointer;
+  clip-path: polygon(
+    var(--notch) 0,
+    calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--notch),
+    100% var(--notch),
+    100% calc(100% - var(--notch)),
+    calc(100% - var(--notch)) calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%,
+    var(--notch) 100%,
+    var(--notch) calc(100% - var(--notch)),
+    0 calc(100% - var(--notch)),
+    0 var(--notch),
+    var(--notch) var(--notch)
+  );
+  box-shadow:
+    inset 0 5px 0 #ffe08a,
+    inset 0 -6px 0 #c98f1f;
+  animation: title-pop-in 500ms steps(5, end) 400ms both;
+}
+
+.title-play .pixel-text {
+  height: clamp(22px, 3.2vw, 32px);
+}
+
+.title-play:hover {
+  filter: brightness(1.08);
+}
+
+.title-play:active {
+  box-shadow:
+    inset 0 -5px 0 #ffe08a,
+    inset 0 6px 0 #c98f1f;
+}
+
+.title-play:focus-visible {
+  outline: none;
+  filter: brightness(1.12);
+}
+
+.title-hint {
+  height: clamp(9px, 1.2vw, 12px);
+  color: var(--title-cream);
+  animation: title-blink 1.1s steps(1, end) infinite;
+}
+
+/* Touch screens have no Enter key. */
+@media (hover: none) {
+  .title-hint {
+    visibility: hidden;
+  }
+}
+
+/* Which table is showing, with dots to pick one. */
+.title-showcase {
+  position: absolute;
+  right: 0;
+  bottom: clamp(18px, 4vh, 36px);
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.title-showcase-caption {
+  height: 9px;
+  color: var(--title-gold);
+}
+
+.title-showcase-name {
+  height: clamp(14px, 2vw, 20px);
+  color: var(--title-cream);
+}
+
+.title-dots {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.title-dot {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid var(--title-ink);
+  background: rgba(243, 234, 210, 0.35);
+  cursor: pointer;
+}
+
+.title-dot.active {
+  background: var(--title-gold);
+}
+
+.title-dot:focus-visible {
+  outline: 2px solid var(--title-cream);
+  outline-offset: 2px;
+}
+
+/* Pressing Play: fade to black in a few hard steps. */
+.title-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.title-screen.leaving::after {
+  animation: title-leave var(--leave-ms) steps(5, end) forwards;
+}
+
+.title-screen.reduced-motion .title-card,
+.title-screen.reduced-motion .title-logo,
+.title-screen.reduced-motion .title-play,
+.title-screen.reduced-motion .title-hint,
+.title-screen.reduced-motion .title-bg-scene.current {
+  animation: none;
+}
+
+@keyframes title-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes title-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+@keyframes title-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(40px) rotate(0deg);
+  }
+}
+
+@keyframes title-bob {
+  to {
+    transform: translateX(calc((var(--i) - 1.5) * 62%)) rotate(var(--angle)) translateY(-6px);
+  }
+}
+
+@keyframes title-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+@keyframes title-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes title-leave {
+  to {
+    opacity: 1;
+  }
+}

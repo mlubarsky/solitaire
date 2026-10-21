@@ -98,7 +98,7 @@ remaining cards into the stock so every fixture is a valid 52-card state.
 - Auto-complete: load an all-face-up state, advance timers, all cards end on
   foundations, input ignored meanwhile, Undo disabled.
 - Win: dialog shows final score/moves (and no time); "Play again" starts a new game.
-  With `prefers-reduced-motion` mocked, celebration canvas is skipped.
+  With `prefers-reduced-motion` mocked, the confetti is skipped.
 - No `console.error` / React warnings during any test (fail the test if one
   occurs — set this up in the Vitest setup file).
 
@@ -113,8 +113,8 @@ Use `?seed=` and `window.__solitaire.loadState` for deterministic setups.
 5. Drag a multi-card stack between columns.
 6. Click-to-move a card to a foundation.
 7. Undo via button and via keyboard.
-8. Load a near-won state, make the final move, see celebration then the win
-   dialog; click "Play again" → fresh deal.
+8. Load a near-won state, make the final move, see the win dialog at once with confetti over
+   it (confetti never blocks clicks, ends by itself); click "Play again" → fresh deal.
 9. Load an auto-completable state → game finishes by itself.
 10. Mobile viewport (375×667): board fits without horizontal scroll; tap-to-move works.
 11. Screenshot initial deal, mid-drag, and win dialog to `e2e/screenshots/`
@@ -295,3 +295,29 @@ Use `?seed=` and `window.__solitaire.loadState` for deterministic setups.
   storage failures fall back to on; reduced motion never animates.
 - E2E 20–22: each pixel scene's canvas changes over 0.7 s; the switch freezes it and survives
   a reload; reduced motion keeps it still; no long tasks while animating.
+
+## I. Pixel cards (revisions 10 and 14: the only card style)
+
+- Every glyph bitmap is rectangular and uses only `X`/`.`; every rank label has 9-pixel-tall
+  glyphs ("10" = "1" + "0" with one pixel between); `bitmapPath` merges row runs into rects.
+- All 52 cards: no `<text>`; one rank path (top-left, inside the corner row, suit color, crisp
+  edges, `data-rank`); one corner suit (top-right, never touching the rank); a centered pixel
+  suit for A–10 and a pixel portrait for J/Q/K (per-suit hair and clothing, chest suit).
+- Portrait bitmaps are 24×24 with known color codes and keep the crown/beard, tiara/long hair
+  and cap/feather cues.
+- Empty foundations show their own pixel suit and name it.
+
+## J. Title screen (revision 16)
+
+- Pixel fonts: every glyph rectangular and the right height; every string the title screen
+  writes has glyphs; layout with gaps; `dilate` and `rowsOnly`.
+- `PixelText` viewBox matches the bitmap; `PixelTitle` has shadow, outline, fill, highlight and
+  shade layers.
+- `TitleScreen`: heading "Solitaire", four pixel cards, Play focused; cycles all five tables
+  every 5 s with the previous one kept during the crossfade, wrapping around; dots jump and
+  mark the current table; Play fades out then starts once; Enter starts; reduced motion starts
+  at once.
+- App: opens on the title screen and Play deals a game; `?seed=` or a passed seed skips it.
+- E2E 23–25: title visible and animated, dots work, Enter enters the game; a deal link skips
+  it and reduced motion starts at once; phone fit and tap to play. Screenshots
+  `title-screen.png`, `title-screen-deep-sea.png`, `title-screen-phone.png`.

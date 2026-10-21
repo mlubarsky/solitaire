@@ -50,4 +50,6 @@ export type MoveResult =
 export const SUITS: readonly Suit[] = ['spades', 'hearts', 'diamonds', 'clubs'];
 export const RANKS: readonly Rank[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 export const FOUNDATION_INDICES: readonly FoundationIndex[] = [0, 1, 2, 3];
+/** Each foundation holds one suit; top to bottom: ♠ ♥ ♦ ♣. */
+export const FOUNDATION_SUITS: readonly Suit[] = SUITS;
 export const TABLEAU_INDICES: readonly TableauIndex[] = [0, 1, 2, 3, 4, 5, 6];

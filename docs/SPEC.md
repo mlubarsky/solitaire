@@ -15,7 +15,7 @@ Three-column "side" layout (desktop / landscape, viewport width ≥ 600 px):
 
 ```
 ┌──────────────────────────── top bar ────────────────────────────┐
-│ ☰  Solitaire             Score  Moves               ↶ Undo  ⟳ New │
+│ ⚙  [logo] Solitaire      Score  Moves        ↶ Undo  ⏪ Undo all  ⟳ New │
 ├──────────────────────────────────────────────────────────────────┤
 │ [Stock]   T1  T2  T3  T4  T5  T6  T7                    [F1]     │
 │           ▒   ▒   ▒   ▒   ▒   ▒   ▒                              │
@@ -39,8 +39,9 @@ Three-column "side" layout (desktop / landscape, viewport width ≥ 600 px):
 - **Center**: the 7 **Tableau** columns, horizontally centered in the play
   area. Cards fan downward. This is the main play area and gets most of the width.
 - **Right column**: the 4 **Foundations** stacked vertically, top to bottom.
-  Built up by suit from Ace to King. A foundation is not pre-assigned a suit;
-  the first Ace placed there decides it.
+  Built up by suit from Ace to King. **Each suit has its own foundation**, top
+  to bottom ♠ ♥ ♦ ♣: an Ace can only go on its own suit's foundation, and each
+  empty foundation shows a faint symbol of its suit.
 - **Horizontal placement**: the 7 tableau columns are centered horizontally
   in the viewport. The **left column is pushed out to the left edge** of the
   screen and the **right column to the right edge**, each inset by the same
@@ -169,9 +170,11 @@ Standard Windows/Google-style scoring for draw-1:
   game is in progress with ≥1 move, ask for confirmation in an in-app dialog
   (not `window.confirm`).
 - **Undo** button (with icon) in the top bar.
-- **Settings menu** (☰ hamburger button at the far left of the top bar,
+- **Settings menu** (gear icon button at the far left of the top bar,
   `aria-label="Settings"`, `aria-expanded` reflecting state): opens a panel
-  that slides in from the left over the board (with a dimmed backdrop). It
+  that slides in from the left over the board (with a dimmed backdrop). The
+  panel has its own theme: dark frosted glass (like the top bar) with cream text and gold accents
+  (headings, dividers, selected options, switch). It
   contains one section, **"Table background"**, showing the 6 backgrounds from
   §7.1 as a grid of labeled thumbnails (a radio group: `role="radiogroup"`,
   each option `role="radio"` with `aria-checked`, arrow-key navigable).
@@ -179,7 +182,7 @@ Standard Windows/Google-style scoring for draw-1:
     no effect on game state, score, or history.
   - The selected thumbnail shows a highlighted border and a check mark.
   - Close via an ✕ button, the Escape key, or clicking the backdrop. Focus
-    moves into the panel when it opens and returns to the ☰ button on close.
+    moves into the panel when it opens and returns to the gear button on close.
   - Below the grid, an **"Animate backgrounds"** switch (`role="switch"`, on by
     default, persisted in `localStorage` under `solitaire.animateBackground`).
     Pixel scenes animate only when it is on and the system does not ask for
@@ -189,8 +192,7 @@ Standard Windows/Google-style scoring for draw-1:
     "Classic green"). It is restored on reload.
   - While the panel is open, game input (clicks/drags on the board, Ctrl+Z)
     is ignored.
-- **God mode** (second section of the settings panel, below the background
-  picker): a "God mode" button that makes the computer finish the current game.
+- **God mode** (settings section below the backgrounds): a "God mode" button that makes the computer finish the current game.
   The button has no icon or emoji; it is styled with a loud, animated
   multicolor gradient (static under reduced motion).
   - Pressing it closes the panel. God mode first works out a line (the solver
@@ -219,13 +221,33 @@ Standard Windows/Google-style scoring for draw-1:
 
 ### Win
 
-- Play a celebration: cards cascade/bounce off the foundations
-  across the screen (classic Windows-style bouncing cards, drawn on a
-  `<canvas>`), lasting a few seconds; click or key press skips it.
-- Then show a modal: "You win!" with final score and moves, and a
-  "Play again" button that starts a new game.
-- Respect `prefers-reduced-motion`: skip the cascade and go straight to the
-  modal; shorten other animations to near-zero.
+- Show the modal right away: "You win!" with final score and moves, and a
+  "Play again" button that starts a new game. Dialogs use the settings
+  panel's theme (dark frosted glass, cream text, gold accents; the win title
+  and primary button are gold).
+- At the same time, a short burst of confetti (paper pieces in the game's
+  gold, red, cream, green, blue and pink) falls from the top of the screen
+  over everything for a few seconds (at most 4.5 s), once per win. It never
+  blocks input.
+- Respect `prefers-reduced-motion`: no confetti; shorten other animations to
+  near-zero.
+
+### Title screen
+
+- The app opens on an 8-bit title screen (unless a specific deal was asked for with `?seed=`,
+  which goes straight to the board). Pressing **PLAY** (or Enter anywhere; tap on phones) fades
+  to black in a few hard steps (~0.45 s) and shows a freshly dealt game.
+- **Background showcase:** the five animated pixel tables cycle full-screen, 5 s each, with a
+  stepped ~0.9 s crossfade, darkened at the edges (vignette) with faint CRT scanlines. At the
+  bottom: a gold "TABLE THEMES" caption, the current table's name, and one square dot per
+  table to jump to it.
+- **Center:** a fan of four pixel cards (A♠, K♥, Q♣, J♦) gently bobbing; the "SOLITAIRE" title
+  in a bold 9-pixel-tall pixel font (gold with a light top band, darker bottom band, dark
+  outline and a drop shadow); "KLONDIKE · DRAW ONE" in a 5×7 pixel font; a chunky gold pixel
+  PLAY button with stepped corners and a bevel (focused on load); a blinking "PRESS ENTER"
+  (hidden on touch screens).
+- All motion uses stepped (8-bit) timing. Under reduced motion: no animations, still
+  backgrounds, Play starts at once. The "Animate backgrounds" setting also applies.
 
 ## 7. Visual spec
 
@@ -234,54 +256,48 @@ Standard Windows/Google-style scoring for draw-1:
   board and covers the viewport at any size/aspect (`object-fit: cover`
   behavior, anchored to the bottom so the horizon/ground stays visible).
 - **Top bar**: dark translucent strip across the top with, left to right:
-  ☰ settings button, game title "Solitaire", then centered **Score** and
+  gear (⚙) settings button, the logo (two fanned cards — a blue back and a white
+  card with a red heart — plus a bold "Solitaire" wordmark; only the card mark on
+  phones, with the name kept for screen readers), then centered **Score** and
   **Moves** readouts, and on the right **Undo** and **New game**
   buttons. White text. Must stay readable over every background.
 - **Empty pile slots**: rounded rectangle outlines with semi-transparent white
   border **and a semi-transparent dark fill** (≈ `rgba(0,0,0,0.18)`) so they
-  are visible over busy pixel-art backgrounds. Foundations show a faint "A"
+  are visible over busy pixel-art backgrounds. Foundations show a faint symbol of their suit
   in the empty slot; the empty stock shows a circular "recycle" arrow icon
   when the waste has cards, and an empty outline/"✕" when both stock and
   waste are empty.
-- **Cards — exactly Google Solitaire's card design.** Every card face
-  follows this one minimal layout, and nothing else is drawn on it:
-  - **Top-left corner:** the rank, once (`A`, `2`–`10`, `J`, `Q`, `K`), bold
-    sans-serif (e.g. `"Roboto", "Helvetica Neue", Arial`, weight 700).
-  - **Top-right corner:** the suit symbol, once, about the same height as the
-    rank.
-  - **Center:** for **A and 2–10**, one large suit symbol (≈ 50–55% of card
-    width). For **J, Q, K**, a small **portrait headshot** of the figure
-    (head and shoulders, ≈ 60–65% of card width, centered), drawn as flat
-    vector SVG in the clean, friendly style of Google's cards:
-    - **King:** older man, full beard and mustache, tall pointed gold crown
-      (`#f9a825`) with a few jewel dots.
-    - **Queen:** woman with long hair framing the face, smaller rounded gold
-      crown/tiara, earrings or necklace.
-    - **Jack:** young beardless man, short hair, a soft cap/beret with a
-      feather (no crown).
-    - Clothing (collar/robe at the shoulders) uses the suit color (red suits:
-      reds; black suits: dark navy/charcoal) with a small suit symbol on the
-      chest. Vary hair color per suit (e.g. spades black, hearts auburn,
-      diamonds blond, clubs brown) so all 12 face cards look distinct.
-    - Simple, readable faces: skin tone fill, dot eyes, small nose/mouth
-      lines, rosy cheeks. Must read clearly as King / Queen / Jack even at the
-      44 px minimum card width (headwear is the main cue).
-    - The rank letter is still shown in the top-left corner as for every card.
-  - **No** bottom-right/rotated index, **no** pip layouts, and no decorative
-    frames or borders around the portrait.
+- **Cards — 8-bit pixel style (the only card style).** The card shape is a
+  clean, flat card; only what's printed on it is pixel art, moderately chunky
+  (about halfway between smooth and full 8-bit), drawn as crisp-edged SVG
+  rectangles. Every face follows one minimal layout, and nothing else is drawn
+  on it:
+  - **Top-left corner:** the rank, once (`A`, `2`–`10`, `J`, `Q`, `K`), in a
+    bold pixel font 9 pixels tall with 2-pixel strokes.
+  - **Top-right corner:** the suit, once, on the same pixel grid as the rank.
+  - **Center:** for **A and 2–10**, one large 13-pixel suit. For **J, Q, K**, a
+    24 × 24 pixel-art headshot on the same pixel grid as the corner:
+    - **King:** jeweled gold crown and a full beard.
+    - **Queen:** gold tiara with a jewel, long hair, gold necklace.
+    - **Jack:** cap in the suit's dark color with a gold band and a feather.
+    - Clothing uses the suit color family (red suits: reds; black suits:
+      charcoal/navy) with a tiny white suit on the chest; hair color varies by
+      suit (spades black, hearts auburn, diamonds blond, clubs brown) so all
+      12 face cards look distinct.
+  - **No** bottom-right/rotated index, **no** pip layouts, no frames.
   - Color: red `#d32f2f` (hearts, diamonds), near-black `#1f1f1f` (spades,
-    clubs) for the rank, corner suit, and center symbol/letter.
+    clubs) for the rank and suits.
   - Flat, clean face: pure white, rounded corners (~7% of width), a very faint
     1 px `rgba(0,0,0,0.12)` edge, soft drop shadow (`0 1px 3px rgba(0,0,0,.3)`).
-  - Suit symbols drawn as SVG paths (not font glyphs) so they render
-    identically on every platform.
   - In fanned tableau columns, only the top strip of a covered card shows; the
     rank (left) and suit (right) must both be readable in that strip, so the
     face-up fan offset must be at least the height of the corner row.
-  - **Card back**: Google-style flat back — rounded white border (~5% of
-    width) around a blue (`#1a73e8`-ish) field with a subtle repeating
-    geometric pattern in a slightly lighter blue. Same back for every card.
-  - Text in the corner indices must remain legible at the minimum card width.
+  - **Card back**: rounded white border (~5% of width) around a blue
+    (`#1a73e8`) field with a subtle 8-bit pattern: an 8×8-pixel stepped
+    diamond with a 2×2 center dot in a lighter blue (`#4a90ee`), tiling into a
+    pixel diamond lattice, on the same pixel size as the card faces. Same back
+    for every card.
+  - The corner rank and suit must remain legible at the minimum card width.
 - **Aspect ratio**: card width:height = 5:7. Card width scales with the
   viewport per the layout rules in §2, then is multiplied by a **card scale of
   0.88** (cards ~12% smaller than the space allows, leaving more breathing
@@ -311,6 +327,16 @@ Six options. Full details, palettes, and the rendering approach are in
 | `ice-mountains` | Snowy peaks | 8-bit pixel art |
 | `forest` | Woodland | 8-bit pixel art |
 | `ocean` | Deep sea | 8-bit pixel art |
+
+### 7.2 Pixel font across the interface
+
+- All interface text uses the title screen's pixel fonts (uppercase): the 5×7 font for labels,
+  numbers, buttons, settings, dialog text and the god-mode bar; the bold 9-pixel-tall font with
+  the gold outlined arcade treatment for "SOLITAIRE" in the header (a small copy of the title
+  screen logo, next to a pixel-art card mark) and "YOU WIN!" in the win dialog. The browser-tab
+  icon is the same pixel card mark.
+- Each word is drawn as its own small pixel image, so longer text wraps like normal text. The
+  real text stays in the page (visually hidden) for screen readers.
 
 ## 8. Out of scope
 

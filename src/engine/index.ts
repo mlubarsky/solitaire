@@ -25,7 +25,12 @@ export {
   tableau,
   topCard,
 } from './piles';
-export { canPlaceOnFoundation, canStackOnTableau, isMovableStack } from './rules';
+export {
+  canPlaceOnFoundation,
+  canStackOnTableau,
+  foundationIndexOf,
+  isMovableStack,
+} from './rules';
 export { applyMove, getLegalMoves, validateMove } from './moves';
 export {
   POINTS,

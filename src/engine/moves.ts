@@ -48,7 +48,9 @@ export function validateMove(state: GameState, move: Move): string | null {
   if (to.kind === 'foundation') {
     if (count !== 1) return 'Only one card at a time can go to a foundation';
     if (from.kind === 'foundation') return 'Cards cannot move between foundations';
-    return canPlaceOnFoundation(moving, target) ? null : 'That card does not fit on the foundation';
+    return canPlaceOnFoundation(moving, target, to.index)
+      ? null
+      : 'That card does not fit on the foundation';
   }
   return canStackOnTableau(moving, target[target.length - 1])
     ? null

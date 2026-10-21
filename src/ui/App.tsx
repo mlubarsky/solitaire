@@ -6,12 +6,13 @@ import { installTestHooks } from '../testHooks';
 import { useAnimateBackground, useBackground } from '../themes/useBackground';
 import { Background } from './background/Background';
 import { Board } from './Board';
-import { Celebration } from './Celebration';
+import { Confetti } from './Confetti';
 import { ConfirmDialog } from './ConfirmDialog';
 import { GodModeBanner } from './GodModeBanner';
 import { SettingsPanel } from './settings/SettingsPanel';
 import { parseSeed, randomSeed } from './seed';
 import { computeLayout } from './layout';
+import { TitleScreen } from './title/TitleScreen';
 import { TopBar } from './TopBar';
 import { useReducedMotion, useViewport } from './useMedia';
 import { WinDialog } from './WinDialog';
@@ -23,6 +24,14 @@ export interface AppProps {
   initialGame?: GameState;
 }
 
+/**
+ * The title screen shows when the app starts, unless a specific game was asked for: a deal
+ * link (`?seed=`) or a seed/position passed in (tests) goes straight to the board.
+ */
+function startsOnTitle({ seed, initialGame }: AppProps): boolean {
+  return seed === undefined && !initialGame && parseSeed(window.location.search) === null;
+}
+
 function initialFor({ seed, initialGame }: AppProps) {
   if (initialGame) return { game: initialGame };
   return { seed: seed ?? parseSeed(window.location.search) ?? randomSeed() };
@@ -30,6 +39,8 @@ function initialFor({ seed, initialGame }: AppProps) {
 
 export function App(props: AppProps) {
   const [initial] = useState(() => initialFor(props));
+  const [onTitle, setOnTitle] = useState(() => startsOnTitle(props));
+  const leaveTitle = useCallback(() => setOnTitle(false), []);
   const [godDelay, setGodDelay] = useState(GOD_MODE_STEP_MS);
   const autoCompleteMs = useRef(AUTO_COMPLETE_STEP_MS);
   const api = useGame(initial, autoCompleteMs);
@@ -61,8 +72,9 @@ export function App(props: AppProps) {
   const toggleSettings = useCallback(() => setSettingsOpen((open) => !open), []);
   const [celebratedDeal, setCelebratedDeal] = useState<number | null>(null);
   const won = phase === 'won';
-  const celebrating = won && !reducedMotion && celebratedDeal !== dealId;
-  const showWin = won && !celebrating;
+  // The win dialog shows at once; confetti falls over it (once per win, never under reduced motion).
+  const showConfetti = won && !reducedMotion && celebratedDeal !== dealId;
+  const showWin = won;
 
   const startNewGame = useCallback(() => {
     setConfirmOpen(false);
@@ -82,7 +94,7 @@ export function App(props: AppProps) {
   }, [closeSettings, startGodMode]);
 
   const cancelNewGame = useCallback(() => setConfirmOpen(false), []);
-  const endCelebration = useCallback(() => setCelebratedDeal(dealId), [dealId]);
+  const endConfetti = useCallback(() => setCelebratedDeal(dealId), [dealId]);
 
   // Ctrl+Z / Cmd+Z undo.
   useEffect(() => {
@@ -116,6 +128,12 @@ export function App(props: AppProps) {
       setGodModeDelay: setGodDelay,
     });
   }, [loadState, newGame]);
+
+  if (onTitle) {
+    return (
+      <TitleScreen onPlay={leaveTitle} reducedMotion={reducedMotion} animate={animateBackground} />
+    );
+  }
 
   const appStyle = { '--topbar-h': `${layout.topBarHeight}px` } as CSSProperties;
 
@@ -174,8 +192,8 @@ export function App(props: AppProps) {
         />
       )}
       {confirmOpen && <ConfirmDialog onConfirm={startNewGame} onCancel={cancelNewGame} />}
-      {celebrating && <Celebration foundations={game.foundations} onDone={endCelebration} />}
       {showWin && <WinDialog score={game.score} moves={game.moves} onPlayAgain={startNewGame} />}
+      {showConfetti && <Confetti onDone={endConfetti} />}
     </div>
   );
 }

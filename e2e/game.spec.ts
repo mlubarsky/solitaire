@@ -24,7 +24,10 @@ test('1. loads without console errors and renders every pile', async ({ page }) 
   await expect(page.getByRole('group', { name: /^Tableau column \d$/ })).toHaveCount(7);
   await expect(page.getByRole('button', { name: 'Stock, 24 cards' })).toBeVisible();
   await expect(page.getByRole('group', { name: 'Waste' })).toBeAttached();
-  await expect(page.getByRole('group', { name: /^Foundation \d$/ })).toHaveCount(4);
+  await expect(page.getByRole('group', { name: /^Foundation \d, / })).toHaveCount(4);
+  for (const [i, suit] of ['spades', 'hearts', 'diamonds', 'clubs'].entries()) {
+    await expect(page.getByRole('group', { name: `Foundation ${i + 1}, ${suit}` })).toBeAttached();
+  }
   for (let i = 0; i < 7; i++) expect(await idsIn(page, `t${i}`)).toHaveLength(i + 1);
   await expect(readout(page, 'score')).toHaveText('0');
   // SPEC §5: no timer or clock anywhere.
@@ -85,7 +88,7 @@ test('6. clicking a card moves it to a foundation', async ({ page }) => {
   await openGame(page);
   await loadState(page, dragFixture());
   await card(page, 'HA').click();
-  expect(await idsIn(page, 'f0')).toEqual(['HA']);
+  expect(await idsIn(page, 'f1')).toEqual(['HA']);
   expect(await idsIn(page, 't4')).toEqual([]);
   await expect(readout(page, 'score')).toHaveText('10');
 });
@@ -123,16 +126,17 @@ test('7b. Undo all goes back to the start of the game in one click', async ({ pa
   await expect(undoAll).toBeDisabled();
 });
 
-test('8. winning shows the celebration, then the win dialog; Play again deals', async ({
+test('8. winning shows the win dialog at once with confetti over it; Play again deals', async ({
   page,
 }) => {
   await openGame(page);
   await loadState(page, nearWonState());
   await card(page, 'SK').click();
-  await expect(page.getByTestId('celebration')).toBeVisible();
   const dialog = page.getByRole('dialog', { name: 'You win!' });
-  await expect(dialog).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByTestId('celebration')).toHaveCount(0);
+  await expect(dialog).toBeVisible();
+  await expect(page.getByTestId('confetti')).toBeVisible();
+  await expect(page.getByTestId('confetti')).toHaveCSS('pointer-events', 'none');
+  await expect(page.getByTestId('confetti')).toHaveCount(0, { timeout: 6000 });
   await expect(dialog.getByTestId('win-score')).toHaveText('510');
   await expect(dialog.getByTestId('win-moves')).toHaveText('121');
   await expect(dialog.getByText(/\btime\b|\d{1,2}:\d{2}/i)).toHaveCount(0);
@@ -152,18 +156,16 @@ test('9. an auto-completable position finishes by itself', async ({ page }) => {
     .poll(async () => (await getState(page)).foundations.map((f) => f.length))
     .toEqual([13, 13, 13, 13]);
   await expect(readout(page, 'moves')).toHaveText('12');
-  // Skip the celebration with a click.
-  await page.getByTestId('celebration').click();
   await expect(page.getByRole('dialog', { name: 'You win!' })).toBeVisible();
 });
 
-test('reduced motion skips the celebration', async ({ page }) => {
+test('reduced motion skips the confetti', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await openGame(page);
   await loadState(page, nearWonState());
   await card(page, 'SK').click();
   await expect(page.getByRole('dialog', { name: 'You win!' })).toBeVisible();
-  await expect(page.getByTestId('celebration')).toHaveCount(0);
+  await expect(page.getByTestId('confetti')).toHaveCount(0);
 });
 
 test('new game asks for confirmation once a move has been made', async ({ page }) => {

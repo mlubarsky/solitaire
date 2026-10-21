@@ -18,7 +18,7 @@ import {
 } from '../test/renderApp';
 import { mediaState } from '../test/setup';
 import { AUTO_COMPLETE_STEP_MS } from '../state/useGame';
-import { CELEBRATION_MAX_MS } from './Celebration';
+import { CONFETTI_MAX_MS } from './Confetti';
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -50,7 +50,14 @@ describe('initial render', () => {
     expect(readout('score')).toBe('0');
     expect(readout('moves')).toBe('0');
     expectNoClock();
-    expect(screen.getByRole('heading', { name: 'Solitaire' })).toBeInTheDocument();
+    const heading = screen.getByRole('heading', { name: 'Solitaire' });
+    expect(heading).toBeInTheDocument();
+    // The logo: a card mark plus the wordmark.
+    expect(heading.querySelector('svg.logo-mark')).toBeInTheDocument();
+    expect(heading.querySelector('svg.logo-title')).toBeInTheDocument();
+    // The settings button shows a gear, not a ☰.
+    const gear = screen.getByRole('button', { name: 'Settings' }).querySelector('svg path');
+    expect(gear?.getAttribute('d')).toMatch(/^M19\.14 12\.94/);
   });
 
   it('accepts a seed prop', () => {
@@ -154,7 +161,7 @@ describe('click to move', () => {
     expect(readout('moves')).toBe('1');
     // Ace goes to the foundation.
     fireEvent.click(cardButton(tableauColumn(4), 'A of hearts'));
-    expect(cardIdsIn(foundationPile(1))).toEqual(['HA']);
+    expect(cardIdsIn(foundationPile(2))).toEqual(['HA']);
     expect(readout('score')).toBe('15');
     // Waste card onto the tableau.
     fireEvent.click(cardButton(wastePile(), '8 of diamonds'));
@@ -176,7 +183,7 @@ describe('click to move', () => {
   it('activates a card from the keyboard', () => {
     renderApp({ initialGame: position() });
     fireEvent.keyDown(cardButton(tableauColumn(4), 'A of hearts'), { key: 'Enter' });
-    expect(cardIdsIn(foundationPile(1))).toEqual(['HA']);
+    expect(cardIdsIn(foundationPile(2))).toEqual(['HA']);
     fireEvent.keyDown(cardButton(tableauColumn(2), '6 of hearts'), { key: 'x' });
     expect(cardIdsIn(tableauColumn(2))).toEqual(['D2', 'H6']);
   });
@@ -357,7 +364,7 @@ describe('win', () => {
     renderApp({ initialGame: nearWonState() });
     fireEvent.click(cardButton(wastePile(), 'K of spades'));
     advance(1000);
-    expect(screen.queryByTestId('celebration')).toBeNull();
+    expect(screen.queryByTestId('confetti')).toBeNull(); // reduced motion: no confetti
     const dialog = screen.getByRole('dialog', { name: 'You win!' });
     expect(within(dialog).getByTestId('win-score')).toHaveTextContent('510');
     expect(within(dialog).getByTestId('win-moves')).toHaveTextContent('121');
@@ -373,32 +380,27 @@ describe('win', () => {
     expect(readout('score')).toBe('0');
   });
 
-  it('plays the canvas celebration first, then the dialog', () => {
+  it('shows the dialog right away with confetti falling over it, which ends by itself', () => {
     renderApp({ initialGame: nearWonState() });
     fireEvent.click(cardButton(wastePile(), 'K of spades'));
-    expect(screen.getByTestId('celebration')).toBeInTheDocument();
-    expect(screen.queryByRole('dialog')).toBeNull();
-    advance(CELEBRATION_MAX_MS);
-    expect(screen.queryByTestId('celebration')).toBeNull();
-    expect(screen.getByRole('dialog', { name: 'You win!' })).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog', { name: 'You win!' });
+    expect(screen.getByTestId('confetti')).toHaveClass('confetti');
+    // The confetti never blocks the dialog: Play again works while it falls.
+    expect(within(dialog).getByRole('button', { name: 'Play again' })).toHaveFocus();
+    advance(CONFETTI_MAX_MS);
+    expect(screen.queryByTestId('confetti')).toBeNull();
+    expect(dialog).toBeInTheDocument();
   });
 
-  it('a key press skips the celebration', () => {
+  it('confetti plays once per win', () => {
     renderApp({ initialGame: nearWonState() });
     fireEvent.click(cardButton(wastePile(), 'K of spades'));
-    advance(500);
-    fireEvent.keyDown(window, { key: ' ' });
-    expect(screen.queryByTestId('celebration')).toBeNull();
-    expect(screen.getByRole('dialog', { name: 'You win!' })).toBeInTheDocument();
-    fireEvent.click(newGameButton());
-    expect(screen.queryByRole('dialog')).toBeNull();
-  });
-
-  it('a click skips the celebration', () => {
-    renderApp({ initialGame: nearWonState() });
-    fireEvent.click(cardButton(wastePile(), 'K of spades'));
-    fireEvent.pointerDown(screen.getByTestId('celebration'));
-    expect(screen.getByRole('dialog', { name: 'You win!' })).toBeInTheDocument();
+    advance(CONFETTI_MAX_MS);
+    expect(screen.queryByTestId('confetti')).toBeNull();
+    act(() => {
+      window.dispatchEvent(new Event('resize'));
+    });
+    expect(screen.queryByTestId('confetti')).toBeNull();
   });
 });
 

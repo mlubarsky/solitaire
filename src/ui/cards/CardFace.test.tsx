@@ -1,164 +1,186 @@
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { cardLabel, createDeck, rankLabel, suitColor, type Card as CardModel } from '../../engine';
+import { createDeck, rankLabel, suitColor, type Card as CardModel } from '../../engine';
+import { renderApp } from '../../test/renderApp';
 import { Card } from '../Card';
-import { SUIT_COLORS, SUIT_PATHS } from './suitPaths';
+import {
+  bitmapPath,
+  bitmapWidth,
+  LARGE_SUITS,
+  RANK_GLYPHS,
+  rankBitmaps,
+  rankPath,
+  SMALL_SUITS,
+  type Bitmap,
+} from './pixelGlyphs';
+import { CHEST_SUITS, CLOTHES, colorsFor, HAIR, mask, PIXEL_PORTRAITS } from './PixelPortrait';
+import { SUIT_COLORS } from './suitPaths';
 
 const deck = createDeck().map((c) => ({ ...c, faceUp: true }));
 
-function renderCard(card: CardModel) {
-  const { container } = render(<Card card={card} />);
-  const el = container.querySelector('[data-card-id]') as HTMLElement;
-  const svg = el.querySelector('svg.card-face') as SVGSVGElement;
-  return { el, svg };
+/** The first "M x y" of a path. */
+function firstPoint(d: string): { x: number; y: number } {
+  const m = /^M([\d.]+) ([\d.]+)/.exec(d);
+  if (!m) throw new Error(`no move-to in ${d}`);
+  return { x: Number(m[1]), y: Number(m[2]) };
 }
 
-/** Center point of an element's transform `translate(x y) scale(s)` in the 250×350 box. */
-function suitCenter(path: Element): { x: number; y: number; size: number } {
-  const m = /translate\(([\d.-]+) ([\d.-]+)\) scale\(([\d.]+)\)/.exec(
-    path.getAttribute('transform') ?? '',
+/** Bounding box of every "M x y h w v h" rectangle in a path. */
+function bounds(d: string) {
+  const rects = [...d.matchAll(/M([\d.]+) ([\d.]+)h([\d.]+)v([\d.]+)/g)].map((m) =>
+    m.slice(1).map(Number),
   );
-  if (!m) throw new Error('no transform');
-  const size = Number(m[3]) * 100;
-  return { x: Number(m[1]) + size / 2, y: Number(m[2]) + size / 2, size };
+  return {
+    x0: Math.min(...rects.map((r) => r[0]!)),
+    y0: Math.min(...rects.map((r) => r[1]!)),
+    x1: Math.max(...rects.map((r) => r[0]! + r[2]!)),
+    y1: Math.max(...rects.map((r) => r[1]! + r[3]!)),
+  };
 }
 
-describe('card faces (SPEC §7: rank top-left, suit top-right, big symbol center)', () => {
-  it.each(deck.map((c) => [c.id, c] as const))('%s', (_id, card) => {
-    const { el, svg } = renderCard(card);
-    const color = SUIT_COLORS[suitColor(card.suit)];
-    expect(el).toHaveAttribute('aria-label', cardLabel(card));
+function renderPixelCard(card: CardModel) {
+  const { container } = render(<Card card={card} />);
+  return container.querySelector('svg.card-face') as SVGSVGElement;
+}
 
-    // Exactly one rank text, in the top-left corner.
+describe('pixel glyphs', () => {
+  const all: [string, Bitmap][] = [
+    ...Object.entries(RANK_GLYPHS),
+    ...Object.entries(SMALL_SUITS).map(([k, v]) => [`small ${k}`, v] as [string, Bitmap]),
+    ...Object.entries(LARGE_SUITS).map(([k, v]) => [`large ${k}`, v] as [string, Bitmap]),
+  ];
+
+  it.each(all)('%s is a clean rectangular bitmap', (_name, bitmap) => {
+    const width = bitmapWidth(bitmap);
+    for (const row of bitmap) {
+      expect(row).toMatch(/^[X.]+$/);
+      expect(row).toHaveLength(width);
+    }
+    expect(bitmap.join('')).toContain('X');
+  });
+
+  it('has a glyph for every rank label, all 9 pixels tall', () => {
+    for (let rank = 1; rank <= 13; rank++) {
+      const glyphs = rankBitmaps(rankLabel(rank as CardModel['rank']));
+      expect(glyphs.length).toBeGreaterThan(0);
+      for (const glyph of glyphs) expect(glyph).toHaveLength(9);
+    }
+    expect(rankBitmaps('10')).toEqual([RANK_GLYPHS['1'], RANK_GLYPHS['0']]);
+  });
+
+  it('merges each run of filled pixels in a row into one rectangle', () => {
+    expect(bitmapPath(['XX.X', '.XX.'], 10, 20, 2)).toBe(
+      'M10 20h4v2h-4zM16 20h2v2h-2zM12 22h4v2h-4z',
+    );
+    expect(bitmapPath(['....'], 0, 0, 1)).toBe('');
+  });
+
+  it('lays out "10" with one pixel between the glyphs', () => {
+    const d = rankPath('10', 0, 0, 1);
+    const one = bitmapWidth(RANK_GLYPHS['1']!);
+    expect(bounds(d).x1).toBe(one + 1 + bitmapWidth(RANK_GLYPHS['0']!));
+  });
+});
+
+describe('card faces: rank top-left, suit top-right, pixel suit or portrait center', () => {
+  it.each(deck.map((c) => [c.id, c] as const))('%s', (_id, card) => {
+    const svg = renderPixelCard(card);
+    const color = SUIT_COLORS[suitColor(card.suit)];
+    expect(svg.querySelectorAll('text')).toHaveLength(0);
+
     const rank = svg.querySelectorAll('[data-part="rank"]');
     expect(rank).toHaveLength(1);
-    expect(rank[0]!.textContent).toBe(rankLabel(card.rank));
-    expect(Number(rank[0]!.getAttribute('x'))).toBeLessThan(40);
-    expect(Number(rank[0]!.getAttribute('y'))).toBeLessThan(90);
+    expect(rank[0]).toHaveAttribute('data-rank', rankLabel(card.rank));
     expect(rank[0]).toHaveAttribute('fill', color);
+    expect(rank[0]).toHaveAttribute('shape-rendering', 'crispEdges');
+    const r = bounds(rank[0]!.getAttribute('d')!);
+    expect(r.x0).toBeLessThan(40);
+    expect(r.y1).toBeLessThan(80); // inside the corner row
 
-    // Exactly one corner suit symbol, in the top-right corner.
     const suit = svg.querySelectorAll('[data-part="suit"]');
     expect(suit).toHaveLength(1);
-    expect(suit[0]).toHaveAttribute('d', SUIT_PATHS[card.suit]);
     expect(suit[0]).toHaveAttribute('fill', color);
-    const corner = suitCenter(suit[0]!);
-    expect(corner.x).toBeGreaterThan(170);
-    expect(corner.y).toBeLessThan(60);
+    const s = bounds(suit[0]!.getAttribute('d')!);
+    expect(s.x0).toBeGreaterThan(150);
+    expect(s.x1).toBeLessThanOrEqual(240);
+    expect(s.y1).toBeLessThan(80);
+    // The rank never runs into the corner suit (even "10").
+    expect(r.x1).toBeLessThan(s.x0);
 
-    // One center element: big suit for A–10, a portrait headshot (not a letter) for J/Q/K.
     const center = svg.querySelectorAll('[data-part="center"]');
     expect(center).toHaveLength(1);
     if (card.rank > 10) {
       const figure = { 11: 'jack', 12: 'queen', 13: 'king' }[card.rank as 11 | 12 | 13];
       expect(center[0]).toHaveAttribute('data-testid', `portrait-${figure}`);
-      expect(center[0]!.tagName.toLowerCase()).toBe('g');
-      expect(center[0]!.textContent).toBe('');
-      expect(svg.querySelectorAll('text')).toHaveLength(1); // only the corner rank
-      // Clothing in the suit color family with a small suit symbol on the chest.
-      expect(center[0]!.querySelector('[data-part="chest-suit"]')).toHaveAttribute(
-        'd',
-        SUIT_PATHS[card.suit],
-      );
+      expect(center[0]).toHaveAttribute('data-style', 'pixel');
+      expect(center[0]).toHaveAttribute('shape-rendering', 'crispEdges');
+      const fills = [...center[0]!.querySelectorAll('path')].map((p) => p.getAttribute('fill'));
+      expect(fills).toContain(HAIR[card.suit]);
+      expect(fills).toContain(CLOTHES[card.suit].main);
+      expect(center[0]!.querySelector('[data-part="chest-suit"]')!.getAttribute('d')).not.toBe('');
     } else {
       expect(center[0]).toHaveAttribute('fill', color);
-      expect(center[0]).toHaveAttribute('d', SUIT_PATHS[card.suit]);
-      const c = suitCenter(center[0]!);
-      expect(c.x).toBe(125);
-      expect(c.size / 250).toBeGreaterThanOrEqual(0.5);
-      expect(c.size / 250).toBeLessThanOrEqual(0.56);
-    }
-
-    // Nothing else is drawn: only those three elements.
-    expect(svg.children).toHaveLength(3);
-  });
-
-  it('a 7 has exactly two suit symbols (corner + center): no pips, no bottom index', () => {
-    const { svg } = renderCard({ id: 'H7', suit: 'hearts', rank: 7, faceUp: true });
-    const suitShapes = Array.from(svg.querySelectorAll('path')).filter(
-      (p) => p.getAttribute('d') === SUIT_PATHS.hearts,
-    );
-    expect(suitShapes).toHaveLength(2);
-    expect(svg.querySelectorAll('text')).toHaveLength(1);
-    expect(svg.querySelector('[transform*="rotate"]')).toBeNull();
-  });
-
-  it('uses red for hearts/diamonds and near-black for spades/clubs', () => {
-    expect(SUIT_COLORS).toEqual({ red: '#d32f2f', black: '#1f1f1f' });
-    for (const [id, suit, color] of [
-      ['HK', 'hearts', '#d32f2f'],
-      ['DQ', 'diamonds', '#d32f2f'],
-      ['SJ', 'spades', '#1f1f1f'],
-      ['CA', 'clubs', '#1f1f1f'],
-    ] as const) {
-      const { svg } = renderCard({ id, suit, rank: 1, faceUp: true });
-      svg.querySelectorAll('[fill]').forEach((n) => expect(n).toHaveAttribute('fill', color));
+      expect(center[0]).toHaveAttribute('shape-rendering', 'crispEdges');
+      const c = bounds(center[0]!.getAttribute('d')!);
+      expect(Math.abs((c.x0 + c.x1) / 2 - 125)).toBeLessThan(1);
+      expect(firstPoint(center[0]!.getAttribute('d')!).y).toBeGreaterThan(140);
     }
   });
 });
 
-describe('face-card portraits', () => {
-  const faces = deck.filter((c) => c.rank > 10);
-  const portrait = (card: CardModel) =>
-    renderCard(card).svg.querySelector('[data-part="center"]') as SVGGElement;
+describe('pixel portraits', () => {
+  it.each(Object.entries(PIXEL_PORTRAITS))(
+    '%s is a 24×24 bitmap of known color codes',
+    (_name, bitmap) => {
+      const codes = new Set(Object.keys(colorsFor('hearts')));
+      expect(bitmap).toHaveLength(24);
+      for (const row of bitmap) {
+        expect(row).toHaveLength(24);
+        for (const ch of row) if (ch !== '.') expect(codes.has(ch)).toBe(true);
+      }
+    },
+  );
 
-  it('the three ranks wear structurally different headwear', () => {
-    for (const suit of ['hearts', 'spades'] as const) {
-      const headwear = ([11, 12, 13] as const).map((rank) => {
-        const p = portrait({ id: 'x', suit, rank, faceUp: true });
-        const hw = p.querySelectorAll('[data-headwear]');
-        expect(hw).toHaveLength(1);
-        return { kind: hw[0]!.getAttribute('data-headwear'), markup: hw[0]!.innerHTML };
-      });
-      expect(headwear.map((h) => h.kind)).toEqual(['cap', 'tiara', 'crown']);
-      expect(new Set(headwear.map((h) => h.markup)).size).toBe(3);
+  it('keeps the classic cues: crown and beard, tiara and long hair, cap and feather', () => {
+    const { king, queen, jack } = PIXEL_PORTRAITS;
+    const eyesRow = (b: Bitmap) => b.findIndex((row) => row.includes('E'));
+    const hairBelowEyes = (b: Bitmap) =>
+      b.slice(eyesRow(b) + 3).filter((row) => row.includes('H')).length;
+    // King: crown jewels on top, a big beard below the eyes.
+    expect(king.slice(0, 5).join('')).toMatch(/R.*B.*R/);
+    expect(hairBelowEyes(king)).toBeGreaterThanOrEqual(6);
+    // Queen: a jewel on top and hair hanging down past the chin.
+    expect(queen[0]).toContain('B');
+    expect(hairBelowEyes(queen)).toBeGreaterThanOrEqual(6);
+    // Jack: a cap (no jewels, no beard) with a feather.
+    expect(jack.join('')).not.toMatch(/[RB]/);
+    expect(jack.slice(0, 6).join('')).toContain('k');
+    expect(hairBelowEyes(jack)).toBeLessThan(2);
+    expect(new Set([king, queen, jack].map((b) => b.join('')))).toHaveProperty('size', 3);
+  });
+
+  it('masks one color code at a time', () => {
+    expect(mask(['aXb.', 'bba.'], 'b')).toEqual(['..X.', 'XX..']);
+  });
+
+  it('has a chest suit for every suit', () => {
+    for (const bitmap of Object.values(CHEST_SUITS)) {
+      expect(bitmap.join('')).toContain('X');
+      for (const row of bitmap) expect(row).toHaveLength(6);
     }
-  });
-
-  it('the King has a beard and a tall crown; the Jack has a feather; the Queen long hair', () => {
-    const king = portrait({ id: 'SK', suit: 'spades', rank: 13, faceUp: true });
-    expect(king.querySelector('[data-part="beard"]')).not.toBeNull();
-    expect(king.querySelector('[data-headwear="crown"]')).not.toBeNull();
-    const queen = portrait({ id: 'HQ', suit: 'hearts', rank: 12, faceUp: true });
-    expect(queen.querySelector('[data-part="long-hair"]')).not.toBeNull();
-    expect(queen.querySelector('[data-part="beard"]')).toBeNull();
-    const jack = portrait({ id: 'DJ', suit: 'diamonds', rank: 11, faceUp: true });
-    expect(jack.querySelector('[data-part="feather"]')).not.toBeNull();
-    expect(jack.querySelector('[data-part="beard"]')).toBeNull();
-  });
-
-  it('hair color varies per suit, so all 12 face cards are distinct', () => {
-    const hair = new Set(
-      (['spades', 'hearts', 'diamonds', 'clubs'] as const).map((suit) =>
-        portrait({ id: 'x', suit, rank: 13, faceUp: true }).getAttribute('data-hair'),
-      ),
-    );
-    expect(hair.size).toBe(4);
-    const markup = faces.map((c) => renderCard(c).svg.outerHTML);
-    expect(new Set(markup).size).toBe(12);
-  });
-
-  it('is a centered headshot about 60–65% of the card width', () => {
-    const p = portrait({ id: 'CQ', suit: 'clubs', rank: 12, faceUp: true });
-    const m = /translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)/.exec(
-      p.getAttribute('transform') ?? '',
-    );
-    const width = 160 * Number(m![3]);
-    expect(width / 250).toBeGreaterThanOrEqual(0.6);
-    expect(width / 250).toBeLessThanOrEqual(0.66);
-    expect(Number(m![1]) + width / 2).toBeCloseTo(125, 5);
   });
 });
 
-describe('card back', () => {
-  it('renders the same for every card', () => {
-    const backs = deck.map((c) => {
-      const { el } = renderCard({ ...c, faceUp: false });
-      expect(el).toHaveAttribute('aria-label', 'face-down card');
-      expect(el.querySelector('svg')).toBeNull();
-      return el.innerHTML;
+describe('foundation slots', () => {
+  it('each empty foundation shows its own pixel suit (♠ ♥ ♦ ♣) and names it', () => {
+    renderApp({ seed: 3 });
+    ['spades', 'hearts', 'diamonds', 'clubs'].forEach((suit, i) => {
+      const pile = screen.getByRole('group', { name: `Foundation ${i + 1}, ${suit}` });
+      expect(pile.querySelector('.slot-suit')).toHaveAttribute('data-suit', suit);
+      expect(pile.querySelector('.slot-suit path')).toHaveAttribute(
+        'shape-rendering',
+        'crispEdges',
+      );
     });
-    expect(new Set(backs).size).toBe(1);
-    expect(backs[0]).toContain('card-back-field');
   });
 });

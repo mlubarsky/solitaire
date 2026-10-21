@@ -16,7 +16,7 @@ import { THEMES } from './themes';
 
 /** Recorded FNV-1a hashes: any change to a scene's pixels must update these deliberately. */
 const SNAPSHOT_HASHES: Record<string, [frame0: string, frame37: string]> = {
-  'night-city': ['bbee2acf', 'f925e2dc'],
+  'night-city': ['999aee45', '8c4c796f'],
   aurora: ['92e31b2a', '3a31cd6c'],
   'ice-mountains': ['5d98d695', '8d4d8cc9'],
   forest: ['db693a8f', '2a34ec7b'],

@@ -1,4 +1,5 @@
 import { Dialog } from './Dialog';
+import { Pixel } from './title/PixelText';
 
 export interface ConfirmDialogProps {
   onConfirm: () => void;
@@ -13,15 +14,17 @@ export function ConfirmDialog({ onConfirm, onCancel }: ConfirmDialogProps) {
       actions={
         <>
           <button type="button" className="btn btn-flat" onClick={onCancel}>
-            Cancel
+            <Pixel text="Cancel" />
           </button>
           <button type="button" className="btn btn-primary" onClick={onConfirm} data-autofocus>
-            New game
+            <Pixel text="New game" />
           </button>
         </>
       }
     >
-      <p className="dialog-text">Your current game will be lost.</p>
+      <p className="dialog-text">
+        <Pixel text="Your current game will be lost." />
+      </p>
     </Dialog>
   );
 }

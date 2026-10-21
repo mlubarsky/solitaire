@@ -77,7 +77,7 @@ export const CITY = (() => {
   while (stars.length < 20) {
     const x = randInt(rng, 0, W - 1);
     const y = randInt(rng, 0, 40);
-    if (inCalmZone(x, y) || (x > 138 && y < 22)) continue;
+    if (inCalmZone(x, y) || (x > 122 && x < 142 && y < 22)) continue;
     stars.push({
       x,
       y,
@@ -157,9 +157,9 @@ function stars(buf: PixelBuffer, _rng: Rng, frame: number) {
 }
 
 function city(buf: PixelBuffer) {
-  // Blocky crescent moon near the top-right corner, beside (not behind) the foundations.
-  circle(buf, 148, 13, 5, P.moon);
-  circle(buf, 151, 11, 4, P.navy);
+  // Blocky crescent moon in the gap between the last tableau column and the foundations.
+  circle(buf, 131, 13, 5, P.moon);
+  circle(buf, 134, 11, 4, P.navy);
 
   for (const b of CITY.far) fillRect(buf, b.x, b.top, b.w, H - b.top, P.far);
   for (const b of CITY.mid) {

@@ -7,8 +7,11 @@ Google Solitaire (Easy mode).
 
 - **Foundation → foundation moves are illegal.** SPEC §4 lists only "Foundation top → Tableau".
   Moving an Ace between empty foundations is pointless, and Google does not allow it.
-- **Which foundation an Ace goes to.** Clicking an Ace (and auto-complete) places it on the
-  leftmost empty foundation. Dragging places it on whichever foundation it is dropped on.
+- **Which foundation an Ace goes to (revision 10).** Each suit has its own foundation, top to
+  bottom ♠ ♥ ♦ ♣ (the engine's suit order). Clicking, dragging, auto-complete, the solver and
+  god mode all go through the same rule (`canPlaceOnFoundation(card, pile, index)`), and
+  `assertValidState` rejects a foundation holding the wrong suit. Empty foundations show a
+  faint suit symbol (smooth or pixel, following the card style) instead of an "A".
 - **Click scan order for non-tableau sources.** SPEC §6 says to scan "starting from the column
   after the source". Waste and foundation cards have no source column, so they scan from
   column 1.
@@ -133,8 +136,8 @@ image-rendering: pixelated` keeps them crisp and bottom-anchored at any size. Th
     - About 20 single-pixel stars; none behind the tableau.
     - Buildings are flat blocks with regular 1×1 window grids, about 42% lit. About 1 in 6 lit
       windows is pale yellow `#fff2a8`; the rest are warm yellow or orange.
-    - The moon sits at the far top-right, beside the foundation column on 16:10 screens rather
-      than behind it.
+    - The moon sits in the gap between the last tableau column and the foundation column
+      (art x ≈ 126–136), so it stays visible at 16:10 and 16:9; stars keep clear of it.
   - Aurora: solid vertical-streak curtains that hang low and bright at the sides (each curtain
     drops a different amount so they don't form one uniform arch) and stay high and dim
     behind the tableau. The frozen lake shows a striped, dimmed reflection.
@@ -169,11 +172,12 @@ image-rendering: pixelated` keeps them crisp and bottom-anchored at any size. Th
   hit area covers its whole fanned stack, not just the slot. Dropping onto the source pile, onto
   nothing, or onto an illegal target, or a cancelled pointer, animates the cards back over
   150 ms.
-- **Win celebration.** All 52 cards launch from their foundations, Kings first and round-robin
-  across the four piles, one every 70 ms. They bounce with gravity and leave trails because the
-  canvas is never cleared, like classic Windows Solitaire. The celebration ends when every card
-  has left the screen, or after 7 s at most. Any pointer press or key press skips it.
-- **Reduced motion.** With `prefers-reduced-motion: reduce`, there is no celebration, no
+- **Win confetti (revision 13).** The classic bouncing-cards celebration was too much, so it was
+  replaced by a light confetti burst: 140 paper pieces (game colors, staggered over 0.6 s) that
+  flutter down with gentle gravity and sway, drawn on a canvas with `pointer-events: none` above
+  the win dialog. The dialog appears immediately; the confetti ends when every piece has fallen
+  out of view or after 4.5 s, and plays once per win.
+- **Reduced motion.** With `prefers-reduced-motion: reduce`, there is no confetti, no
   position or flip animations (FLIP is disabled), and CSS animations (shake, dialogs, panel)
   run in 1 ms. Auto-complete still advances one card per 100 ms so the result is visible.
 
@@ -251,3 +255,71 @@ image-rendering: pixelated` keeps them crisp and bottom-anchored at any size. Th
   pixels at the tips) instead of rippling independently.
 - **Jellyfish never hang straight.** The tentacle lean is `±(1 + |sin|)` art pixels at the tips,
   so they jump from one side to the other instead of passing through vertical.
+
+## Pixel card style (revision 10)
+
+- Offered as a setting ("Card style": Classic / Pixel) so both looks can be compared; Classic
+  stays the default.
+- "About 50% 8-bit": rank glyphs are 9 pixels tall with 2-pixel strokes (a classic 8-bit font
+  is 5×7), corner suits share the rank's pixel size, and center suits are 13 pixels across.
+  At a 100 px card each art pixel is about 3–4 screen pixels.
+- The rank, suit symbols and J/Q/K portraits change; the card shape, back and colors don't.
+  The win confetti doesn't depend on the card style.
+- **Pixel J/Q/K (revision 10).** The Pixel style also redraws the J/Q/K headshots as 24×24
+  multi-color pixel art on the same pixel grid as the corner rank, keeping the classic cues
+  and the per-suit hair and clothing colors, with a tiny white suit on the chest.
+
+## Header (revision 11)
+
+- **Logo.** The "Solitaire" text became a logo: a card mark (a blue-backed card fanned behind a
+  white card with a red heart) plus a bold wordmark. On phones only the mark shows; the heading
+  still reads "Solitaire" to screen readers. The browser-tab icon uses the same mark.
+- **Settings icon.** The ☰ became a gear (Material Design "settings" glyph, Apache 2.0).
+
+## Settings panel theme (revision 12)
+
+- The panel uses its own theme instead of a white sheet with blue highlights: dark frosted glass
+  (`rgba(8, 20, 14, 0.8)` + an 18 px backdrop blur, the same material as the top bar, with a
+  solid `#0f2419` fallback), cream text, and gold accents
+  (`#f2c14e`, the gold of the crowns and the treasure chest) for section headings, hairline
+  dividers, selected tiles (gold border + soft glow), the check badge and the switch. The colors
+  live in `--sp-*` custom properties on `.settings-panel`.
+- Hover highlights apply only on devices that really hover (`@media (hover: hover)`), so a tap on
+  a touch screen doesn't leave a stuck highlight.
+- **Why glass (revision 12b).** A first version used a green felt gradient with a gold glow in
+  the corner; side-by-side renders showed the glow turning olive and muddy over the green, the
+  gradient darkening to near-black at the bottom, and a fixed green clashing with the blue/purple
+  scenes. Glass takes a hint of whatever is behind it, so it matches every background and the
+  top bar.
+
+## One card style (revision 14)
+
+- The classic (smooth) card style was removed; the pixel style is the only one, since it fits
+  the 8-bit backgrounds. The "Card style" settings section, its `solitaire.cardStyle`
+  preference (now ignored if present), the classic SVG portraits and the style context are
+  gone. Empty foundations always show the pixel suit. The logo and favicon keep their smooth
+  card mark.
+- **Pixel card back (revision 15).** The smooth diamond lattice became an 8×8-pixel tile (stepped
+  diamond + 2×2 dot, `#4a90ee` on `#1a73e8`) as a crisp-edged SVG data URI, sized so one tile
+  pixel is 2.64% of the card width, matching the face pixels.
+
+## Title screen (revision 16)
+
+- Shown on every app start; `?seed=` deal links (and the e2e/unit tests, which always pass a
+  seed or position) skip it so a shared deal opens straight on the board. There's no way back
+  to the title screen from the game yet.
+- Video-game look built from the game's own parts: the animated pixel tables as the attract
+  loop, pixel cards, gold from the crowns and chest. Two pixel fonts drawn as bitmaps (a 5×7
+  font for labels and a bold 9-tall font for the title and PLAY), so no web fonts are loaded.
+- All title motion uses CSS `steps()` timing for a choppy 8-bit feel. Only the current and the
+  fading-out table canvases exist at any moment, so at most two scenes animate at once.
+
+## Pixel font everywhere (revision 17)
+
+- `<Pixel text>` renders interface text in the 5×7 pixel font as one crisp SVG per word (so it
+  wraps), sized from the CSS font size (cap height = 7/8 em), with the real text in a
+  visually hidden span, so accessible names, live regions and `textContent` are unchanged.
+  The font gained digits and punctuation (`. , : ' ? - … ( ) / ✕`).
+- `PixelTitle` takes either font, so the header logo (bold font) and "YOU WIN!" (5×7 font, which
+  has the letters the bold one lacks) share the gold outlined arcade look.
+- The logo mark and favicon are now a 15×14 pixel-art card pair instead of a smooth vector.

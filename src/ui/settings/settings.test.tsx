@@ -16,7 +16,8 @@ const NAMES = ['Classic green', 'Night city', 'Aurora', 'Snowy peaks', 'Woodland
 
 const settingsButton = () => screen.getByRole('button', { name: 'Settings' });
 const panel = () => screen.getByRole('dialog', { name: 'Settings' });
-const radios = () => within(panel()).getAllByRole('radio');
+const backgroundGroup = () => within(panel()).getByRole('radiogroup', { name: 'Table background' });
+const radios = () => within(backgroundGroup()).getAllByRole('radio');
 const backgroundId = () => screen.getByTestId('background').getAttribute('data-background');
 
 beforeEach(() => {
@@ -69,7 +70,7 @@ describe('settings menu', () => {
   it('arrow keys move the selection (with wrap-around, Home and End)', () => {
     renderApp({ seed: 1 });
     fireEvent.click(settingsButton());
-    const group = within(panel()).getByRole('radiogroup');
+    const group = backgroundGroup();
     const checked = () => radios().find((r) => r.getAttribute('aria-checked') === 'true');
     fireEvent.keyDown(group, { key: 'ArrowRight' });
     expect(checked()).toHaveTextContent('Night city');

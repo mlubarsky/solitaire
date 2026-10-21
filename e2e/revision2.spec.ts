@@ -188,6 +188,7 @@ test.describe('narrow layout (375×667)', () => {
     expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(375);
     await panel.getByRole('radio', { name: 'Night city' }).tap();
     await expect(page.getByTestId('background')).toHaveAttribute('data-background', 'night-city');
+    await page.waitForTimeout(250); // let the selection border finish its fade
     await page.screenshot({ path: `${DIR}/phone-settings.png` });
     await panel.getByRole('button', { name: 'Close settings' }).tap();
     await expect(panel).toHaveCount(0);
@@ -226,14 +227,12 @@ test.describe('review screenshots', () => {
     const f0 = await box(page, 'f0');
     const f3 = await box(page, 'f3');
     const bottom = Math.max(t0.y + t0.height, f3.y + f3.height);
-    await page.screenshot({
-      path: `${DIR}/cards-closeup.png`,
-      clip: {
-        x: stock.x - 8,
-        y: stock.y - 8,
-        width: f0.x + f0.width - stock.x + 16,
-        height: bottom - stock.y + 16,
-      },
-    });
+    const clip = {
+      x: stock.x - 8,
+      y: stock.y - 8,
+      width: f0.x + f0.width - stock.x + 16,
+      height: bottom - stock.y + 16,
+    };
+    await page.screenshot({ path: `${DIR}/cards-closeup.png`, clip });
   });
 });

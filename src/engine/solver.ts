@@ -94,7 +94,8 @@ function foundationRank(state: GameState, suit: Suit): number {
 /** The foundation `card` can go to, if any. */
 function foundationFor(state: GameState, card: Card): PileId | null {
   return (
-    FOUNDATION_PILES.find((f) => canPlaceOnFoundation(card, state.foundations[f.index])) ?? null
+    FOUNDATION_PILES.find((f) => canPlaceOnFoundation(card, state.foundations[f.index], f.index)) ??
+    null
   );
 }
 

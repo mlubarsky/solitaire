@@ -1,4 +1,6 @@
 import { memo, type Ref } from 'react';
+import { Pixel } from './title/PixelText';
+import { Logo } from './Logo';
 import { SettingsButton } from './settings/SettingsButton';
 
 export interface TopBarProps {
@@ -16,9 +18,11 @@ export interface TopBarProps {
 function Stat({ label, value, testId }: { label: string; value: string; testId: string }) {
   return (
     <div className="stat">
-      <span className="stat-label">{label}</span>
+      <span className="stat-label">
+        <Pixel text={label} />
+      </span>
       <span className="stat-value" data-testid={testId}>
-        {value}
+        <Pixel text={value} />
       </span>
     </div>
   );
@@ -74,7 +78,7 @@ function TopBarView({
           expanded={settingsOpen}
           onClick={onToggleSettings}
         />
-        <h1 className="title">Solitaire</h1>
+        <Logo />
       </div>
       <div className="stats">
         <Stat label="Score" value={String(score)} testId="score" />
@@ -89,7 +93,9 @@ function TopBarView({
           aria-label="Undo"
         >
           <UndoIcon />
-          <span className="btn-text">Undo</span>
+          <span className="btn-text">
+            <Pixel text="Undo" />
+          </span>
         </button>
         <button
           type="button"
@@ -100,11 +106,15 @@ function TopBarView({
           title="Undo every move, back to the start of this game"
         >
           <UndoAllIcon />
-          <span className="btn-text">Undo all</span>
+          <span className="btn-text">
+            <Pixel text="Undo all" />
+          </span>
         </button>
         <button type="button" className="btn btn-primary" onClick={onNewGame} aria-label="New game">
           <NewGameIcon />
-          <span className="btn-text">New game</span>
+          <span className="btn-text">
+            <Pixel text="New game" />
+          </span>
         </button>
       </div>
     </header>

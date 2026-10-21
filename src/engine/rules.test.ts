@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { card } from '../test/makeState';
-import { canPlaceOnFoundation, canStackOnTableau, isMovableStack } from './rules';
+import {
+  canPlaceOnFoundation,
+  canStackOnTableau,
+  foundationIndexOf,
+  isMovableStack,
+} from './rules';
+import { FOUNDATION_SUITS } from './types';
 
 const c = (spec: string) => card(spec);
 
@@ -34,24 +40,35 @@ describe('canStackOnTableau', () => {
   });
 });
 
-describe('canPlaceOnFoundation', () => {
-  it('Ace on empty', () => expect(canPlaceOnFoundation(c('HA'), [])).toBe(true));
-  it('2 on empty is rejected', () => expect(canPlaceOnFoundation(c('H2'), [])).toBe(false));
-  it('2♥ on A♥', () => expect(canPlaceOnFoundation(c('H2'), [c('HA')])).toBe(true));
-  it('2♦ on A♥ is rejected', () => expect(canPlaceOnFoundation(c('D2'), [c('HA')])).toBe(false));
-  it('3♥ on A♥ is rejected', () => expect(canPlaceOnFoundation(c('H3'), [c('HA')])).toBe(false));
-  it('A on A is rejected', () => expect(canPlaceOnFoundation(c('SA'), [c('HA')])).toBe(false));
+describe('canPlaceOnFoundation (each suit has its own foundation: ♠ ♥ ♦ ♣)', () => {
+  const H = foundationIndexOf('hearts');
+  it('maps suits to fixed foundations', () => {
+    expect(FOUNDATION_SUITS).toEqual(['spades', 'hearts', 'diamonds', 'clubs']);
+    expect(
+      ['spades', 'hearts', 'diamonds', 'clubs'].map((s) => foundationIndexOf(s as never)),
+    ).toEqual([0, 1, 2, 3]);
+  });
+  it('Ace on its own empty foundation', () =>
+    expect(canPlaceOnFoundation(c('HA'), [], H)).toBe(true));
+  it("Ace on another suit's empty foundation is rejected", () => {
+    for (const i of [0, 2, 3]) expect(canPlaceOnFoundation(c('HA'), [], i)).toBe(false);
+  });
+  it('2 on empty is rejected', () => expect(canPlaceOnFoundation(c('H2'), [], H)).toBe(false));
+  it('2♥ on A♥', () => expect(canPlaceOnFoundation(c('H2'), [c('HA')], H)).toBe(true));
+  it('2♦ on A♥ is rejected', () => expect(canPlaceOnFoundation(c('D2'), [c('HA')], H)).toBe(false));
+  it('3♥ on A♥ is rejected', () => expect(canPlaceOnFoundation(c('H3'), [c('HA')], H)).toBe(false));
+  it('A on A is rejected', () => expect(canPlaceOnFoundation(c('SA'), [c('HA')], H)).toBe(false));
 
   const fullHearts = ['HA', 'H2', 'H3', 'H4', 'H5', 'H6', 'H7', 'H8', 'H9', 'H10', 'HJ', 'HQ'].map(
     c,
   );
   it('K completes a foundation', () => {
-    expect(canPlaceOnFoundation(c('HK'), fullHearts)).toBe(true);
+    expect(canPlaceOnFoundation(c('HK'), fullHearts, H)).toBe(true);
   });
   it('nothing goes on a full foundation', () => {
     const full = [...fullHearts, c('HK')];
     for (const spec of ['HA', 'SA', 'HK', 'SK', 'H2']) {
-      expect(canPlaceOnFoundation(c(spec), full)).toBe(false);
+      expect(canPlaceOnFoundation(c(spec), full, H)).toBe(false);
     }
   });
 });

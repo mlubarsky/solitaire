@@ -16,14 +16,16 @@ describe('findAutoMove', () => {
 
   it('sends a waste card to the foundation first, then the tableau', () => {
     const g = makeState({ waste: ['HA'], tableau: [['S2']] });
-    expect(findAutoMove(g, WASTE, 0)).toEqual(t(WASTE, foundation(0)));
+    expect(findAutoMove(g, WASTE, 0)).toEqual(t(WASTE, foundation(1)));
     const g2 = makeState({ waste: ['H6'], tableau: [[], ['S7']] });
     expect(findAutoMove(g2, WASTE, 0)).toEqual(t(WASTE, tableau(1)));
   });
 
-  it('places an Ace on the first empty foundation', () => {
-    const g = makeState({ tableau: [['DA']], foundations: [['SA'], [], ['HA']] });
-    expect(findAutoMove(g, tableau(0), 0)).toEqual(t(tableau(0), foundation(1)));
+  it("places an Ace on its own suit's foundation (♠ ♥ ♦ ♣), not the first empty one", () => {
+    const g = makeState({ tableau: [['DA'], ['CA'], ['SA']], foundations: [['HA']] });
+    expect(findAutoMove(g, tableau(0), 0)).toEqual(t(tableau(0), foundation(2)));
+    expect(findAutoMove(g, tableau(1), 0)).toEqual(t(tableau(1), foundation(3)));
+    expect(findAutoMove(g, tableau(2), 0)).toEqual(t(tableau(2), foundation(0)));
   });
 
   it('never sends a card from the middle of a column to a foundation', () => {
@@ -68,11 +70,11 @@ describe('findAutoMove', () => {
 
   it('returns a foundation card to the tableau when legal, null otherwise', () => {
     const g = makeState({ foundations: [upTo('H', 6)], tableau: [['C9'], ['S7']] });
-    expect(findAutoMove(g, foundation(0), 5)).toEqual(t(foundation(0), tableau(1)));
+    expect(findAutoMove(g, foundation(1), 5)).toEqual(t(foundation(1), tableau(1)));
     const stuck = makeState({ foundations: [upTo('H', 6)], tableau: [['C9']] });
-    expect(findAutoMove(stuck, foundation(0), 5)).toBeNull();
+    expect(findAutoMove(stuck, foundation(1), 5)).toBeNull();
     const king = makeState({ foundations: [upTo('H', 13)], tableau: [[]] });
-    expect(findAutoMove(king, foundation(0), 12)).toEqual(t(foundation(0), tableau(0)));
+    expect(findAutoMove(king, foundation(1), 12)).toEqual(t(foundation(1), tableau(0)));
   });
 
   it('only allows the top card of the waste or a foundation', () => {

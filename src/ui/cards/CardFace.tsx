@@ -1,46 +1,65 @@
 import { memo } from 'react';
-import { rankLabel, suitColor, type Card, type Suit } from '../../engine';
-import { FacePortrait, type FaceRank } from './FacePortrait';
-import { SUIT_COLORS, SUIT_PATHS } from './suitPaths';
+import { rankLabel, suitColor, type Card } from '../../engine';
+import { PixelPortrait, type FaceRank } from './PixelPortrait';
+import {
+  bitmapPath,
+  bitmapWidth,
+  LARGE_SUITS,
+  rankPath,
+  SMALL_SUITS,
+  type Bitmap,
+} from './pixelGlyphs';
+import { SUIT_COLORS } from './suitPaths';
 
 /** Card faces are drawn in a 250 × 350 box (5:7) and scaled to the card size. */
 export const FACE_W = 250;
 export const FACE_H = 350;
 /** Height of the corner row (rank + suit) as a fraction of the card height. */
 export const CORNER_ROW = 80 / FACE_H;
-/** Portrait headshot width for J/Q/K (≈ 62% of the card width). */
-export const PORTRAIT_W = 156;
-const FONT = "Roboto, 'Helvetica Neue', Arial, sans-serif";
+/** Pixel size (in face units) of the corner rank and suit, and of the J/Q/K portraits. */
+export const PIXEL_CORNER_CELL = 6.6;
+/** Size of the large center suit. */
+const PIXEL_CENTER_SIZE = 136;
 
-/** A suit symbol of `size` centered at (cx, cy), drawn from our own SVG path. */
-export function SuitShape(props: {
-  suit: Suit;
-  cx: number;
-  cy: number;
-  size: number;
+function Pixels(props: {
+  bitmap: Bitmap;
+  x: number;
+  y: number;
+  cell: number;
   fill: string;
-  part?: string;
+  part: string;
 }) {
-  const { suit, cx, cy, size, fill, part } = props;
+  const { bitmap, x, y, cell, fill, part } = props;
   return (
     <path
       data-part={part}
-      d={SUIT_PATHS[suit]}
+      d={bitmapPath(bitmap, x, y, cell)}
       fill={fill}
-      transform={`translate(${cx - size / 2} ${cy - size / 2}) scale(${size / 100})`}
+      shapeRendering="crispEdges"
     />
   );
 }
 
 /**
- * Google-Solitaire-style face: one rank at the top-left, the suit at the top-right, and in the
- * center a large suit (A–10) or a portrait headshot (J, Q, K). The corner row (rank + suit) fits in
- * the top `CORNER_ROW` of the card so it stays readable in a fanned tableau column.
+ * A card face in moderately 8-bit pixel art: one rank at the top-left (a bold 9-pixel-tall font),
+ * the suit at the top-right on the same pixel grid, and in the center a 13-pixel suit (A–10) or
+ * a pixel-art headshot (J, Q, K). The corner row fits in the top `CORNER_ROW` of the card so it
+ * stays readable in a fanned tableau column.
  */
 function CardFaceView({ card }: { card: Pick<Card, 'suit' | 'rank'> }) {
   const color = SUIT_COLORS[suitColor(card.suit)];
   const rank = rankLabel(card.rank);
-  const isFace = card.rank > 10;
+  const cell = PIXEL_CORNER_CELL;
+  const top = 13;
+  // Corner suit: right-aligned, vertically centered on the 9-pixel rank row.
+  const small = SMALL_SUITS[card.suit];
+  const smallX = 234 - bitmapWidth(small) * cell;
+  const smallY = top + ((9 - small.length) * cell) / 2;
+  // Center suit.
+  const large = LARGE_SUITS[card.suit];
+  const largeCell = PIXEL_CENTER_SIZE / Math.max(bitmapWidth(large), large.length);
+  const largeX = FACE_W / 2 - (bitmapWidth(large) * largeCell) / 2;
+  const largeY = 216 - (large.length * largeCell) / 2;
   return (
     <svg
       className="card-face"
@@ -50,36 +69,24 @@ function CardFaceView({ card }: { card: Pick<Card, 'suit' | 'rank'> }) {
       focusable="false"
       data-color={suitColor(card.suit)}
     >
-      <text
+      <path
         data-part="rank"
-        x={14}
-        y={72}
-        fontSize={82}
-        fontWeight={700}
-        fontFamily={FONT}
-        letterSpacing={rank.length > 1 ? -6 : 0}
+        data-rank={rank}
+        d={rankPath(rank, 16, top, cell)}
         fill={color}
-      >
-        {rank}
-      </text>
-      <SuitShape part="suit" suit={card.suit} cx={202} cy={42} size={60} fill={color} />
-      {isFace ? (
-        <FacePortrait
+        shapeRendering="crispEdges"
+      />
+      <Pixels part="suit" bitmap={small} x={smallX} y={smallY} cell={cell} fill={color} />
+      {card.rank > 10 ? (
+        <PixelPortrait
           rank={card.rank as FaceRank}
           suit={card.suit}
-          x={(FACE_W - PORTRAIT_W) / 2}
-          y={106}
-          width={PORTRAIT_W}
+          x={FACE_W / 2 - 12 * cell}
+          y={120}
+          cell={cell}
         />
       ) : (
-        <SuitShape
-          part="center"
-          suit={card.suit}
-          cx={FACE_W / 2}
-          cy={216}
-          size={136}
-          fill={color}
-        />
+        <Pixels part="center" bitmap={large} x={largeX} y={largeY} cell={largeCell} fill={color} />
       )}
     </svg>
   );

@@ -10,7 +10,8 @@ describe('Card', () => {
   it('renders faces, backs, and accessible labels', () => {
     const { rerender } = render(<Card card={makeCard('hearts', 12, true)} />);
     expect(screen.getByRole('img', { name: 'Q of hearts' })).toBeInTheDocument();
-    expect(screen.getAllByText('Q')).toHaveLength(1); // top-left rank; the center is a portrait
+    // One pixel rank in the top-left; the center is a portrait.
+    expect(document.querySelectorAll('[data-part="rank"][data-rank="Q"]')).toHaveLength(1);
     expect(screen.getByTestId('portrait-queen')).toBeInTheDocument();
     rerender(<Card card={makeCard('spades', 10, false)} />);
     expect(screen.getByRole('img', { name: 'face-down card' })).toBeInTheDocument();

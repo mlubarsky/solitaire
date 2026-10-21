@@ -1,6 +1,6 @@
 import { cardId } from './deck';
 import { canStackOnTableau } from './rules';
-import type { Card, GameState } from './types';
+import { FOUNDATION_SUITS, type Card, type GameState } from './types';
 
 /** Returns a list of invariant violations (empty when the state is valid). */
 export function findStateProblems(state: GameState): string[] {
@@ -30,6 +30,9 @@ export function findStateProblems(state: GameState): string[] {
       const base = pile[0] as Card;
       if (!card.faceUp || card.rank !== i + 1 || card.suit !== base.suit) {
         problems.push(`Foundation ${f} is not a same-suit ascending run from Ace`);
+      }
+      if (i === 0 && card.suit !== FOUNDATION_SUITS[f]) {
+        problems.push(`Foundation ${f} only takes ${FOUNDATION_SUITS[f]}`);
       }
     });
   });

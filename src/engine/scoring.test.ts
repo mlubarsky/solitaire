@@ -66,7 +66,7 @@ describe('scoreForMove (SPEC §5 table)', () => {
         t(WASTE, tableau(0)),
         6,
       ],
-      ['waste → foundation', makeState({ waste: ['SA'], score: 1 }), t(WASTE, foundation(1)), 11],
+      ['waste → foundation', makeState({ waste: ['SA'], score: 1 }), t(WASTE, foundation(0)), 11],
       [
         'tableau → foundation + flip',
         makeState({ tableau: [['#D5', 'SA']], score: 1 }),
@@ -76,13 +76,13 @@ describe('scoreForMove (SPEC §5 table)', () => {
       [
         'foundation → tableau clamped',
         makeState({ foundations: [upTo('H', 6)], tableau: [['S7']], score: 4 }),
-        t(foundation(0), tableau(0)),
+        t(foundation(1), tableau(0)),
         0,
       ],
       [
         'foundation → tableau',
         makeState({ foundations: [upTo('H', 6)], tableau: [['S7']], score: 20 }),
-        t(foundation(0), tableau(0)),
+        t(foundation(1), tableau(0)),
         5,
       ],
       [

@@ -52,7 +52,6 @@ test('E. a full game played through the UI with the greedy strategy reaches the 
     undefined,
     { timeout: 20_000 },
   );
-  await page.keyboard.press('Escape'); // skip the celebration
   await expect(dialog).toBeVisible();
   const final = await getState(page);
   await expect(dialog.getByTestId('win-moves')).toHaveText(String(final.moves));

@@ -70,7 +70,7 @@ describe('candidateMoves', () => {
   it('forces a safe foundation move (Aces and 2s) as the only candidate', () => {
     const s = makeState({ tableau: [['HA'], ['S8'], ['D7']], waste: ['C9'] });
     expect(candidateMoves(s)).toEqual([
-      { type: 'transfer', from: tableau(0), to: foundation(0), count: 1 },
+      { type: 'transfer', from: tableau(0), to: foundation(1), count: 1 },
     ]);
   });
 
@@ -80,7 +80,7 @@ describe('candidateMoves', () => {
       waste: ['H3'],
     });
     expect(candidateMoves(s)).toEqual([
-      { type: 'transfer', from: WASTE, to: foundation(0), count: 1 },
+      { type: 'transfer', from: WASTE, to: foundation(1), count: 1 },
     ]);
   });
 
@@ -90,7 +90,7 @@ describe('candidateMoves', () => {
       tableau: [['H5'], ['S6']],
     });
     const moves = candidateMoves(s);
-    expect(moves[0]).toEqual({ type: 'transfer', from: tableau(0), to: foundation(0), count: 1 });
+    expect(moves[0]).toEqual({ type: 'transfer', from: tableau(0), to: foundation(1), count: 1 });
     expect(moves).toContainEqual({ type: 'transfer', from: tableau(0), to: tableau(1), count: 1 });
     expect(moves.length).toBeGreaterThan(1);
   });

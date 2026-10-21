@@ -1,5 +1,5 @@
 import { color } from './deck';
-import type { Card, Pile } from './types';
+import { FOUNDATION_SUITS, type Card, type FoundationIndex, type Pile, type Suit } from './types';
 
 /**
  * Can `card` (the bottom card of a moving stack) be placed on a tableau column whose
@@ -11,11 +11,17 @@ export function canStackOnTableau(card: Card, target: Card | undefined): boolean
   return color(card) !== color(target) && target.rank === card.rank + 1;
 }
 
-/** Can `card` be placed on `foundationPile`? */
-export function canPlaceOnFoundation(card: Card, foundationPile: Pile): boolean {
+/** The foundation that holds `suit` (each suit has its own). */
+export function foundationIndexOf(suit: Suit): FoundationIndex {
+  return FOUNDATION_SUITS.indexOf(suit) as FoundationIndex;
+}
+
+/** Can `card` be placed on foundation `index`, whose cards are `foundationPile`? */
+export function canPlaceOnFoundation(card: Card, foundationPile: Pile, index: number): boolean {
+  if (FOUNDATION_SUITS[index] !== card.suit) return false;
   const top = foundationPile[foundationPile.length - 1];
   if (top === undefined) return card.rank === 1;
-  return top.suit === card.suit && card.rank === top.rank + 1;
+  return card.rank === top.rank + 1;
 }
 
 /** Is `pile[index..]` a face-up, alternating-color, descending run that may be picked up? */

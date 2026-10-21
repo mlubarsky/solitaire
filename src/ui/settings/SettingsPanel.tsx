@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { Pixel, PixelText } from '../title/PixelText';
 import { THEMES, type Theme, type ThemeId } from '../../themes/themes';
 import { FeltBackground } from '../background/FeltBackground';
 import { PixelCanvas } from '../background/PixelBackground';
@@ -89,18 +90,22 @@ export function SettingsPanel({
         aria-labelledby={titleId}
       >
         <header className="settings-header">
-          <h2 id={titleId}>Settings</h2>
+          <h2 id={titleId}>
+            <Pixel text="Settings" />
+          </h2>
           <button
             type="button"
             className="settings-close"
             aria-label="Close settings"
             onClick={onClose}
           >
-            ✕
+            <PixelText text="✕" />
           </button>
         </header>
         <section className="settings-section">
-          <h3 id={groupId}>Table background</h3>
+          <h3 id={groupId}>
+            <Pixel text="Table background" />
+          </h3>
           <div
             ref={groupRef}
             className="bg-grid"
@@ -134,7 +139,9 @@ export function SettingsPanel({
                       </span>
                     )}
                   </span>
-                  <span className="bg-name">{theme.name}</span>
+                  <span className="bg-name">
+                    <Pixel text={theme.name} />
+                  </span>
                 </button>
               );
             })}
@@ -148,19 +155,19 @@ export function SettingsPanel({
               onChange={(event) => onAnimateBackgroundChange(event.target.checked)}
             />
             <span className="switch-track" aria-hidden="true" />
-            <span>Animate backgrounds</span>
+            <Pixel text="Animate backgrounds" />
           </label>
         </section>
         <section className="settings-section" aria-labelledby={godId}>
-          <h3 id={godId}>God mode</h3>
+          <h3 id={godId}>
+            <Pixel text="God mode" />
+          </h3>
           <p className="settings-note">
-            Let the computer finish this game for you. It knows where every card is and plays the
-            shortest winning line it can find, half a second per move. Change the speed with the
-            slider while it plays.
+            <Pixel text="Let the computer play this game for you." />
           </p>
           {godModeActive ? (
             <button type="button" className="god-mode-button stop" onClick={onStopGodMode}>
-              Stop god mode
+              <Pixel text="Stop god mode" />
             </button>
           ) : (
             <button
@@ -169,7 +176,7 @@ export function SettingsPanel({
               disabled={!godModeAvailable}
               onClick={onStartGodMode}
             >
-              God mode
+              <Pixel text="God mode" />
             </button>
           )}
         </section>

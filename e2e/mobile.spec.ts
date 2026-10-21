@@ -35,7 +35,7 @@ test('10. fits a 375×667 phone without horizontal scroll; tap-to-move works', a
   await card(page, 'H6').tap();
   expect(await idsIn(page, 't0')).toEqual(['S7', 'H6']);
   await card(page, 'HA').tap();
-  expect(await idsIn(page, 'f0')).toEqual(['HA']);
+  expect(await idsIn(page, 'f1')).toEqual(['HA']);
   await pile(page, 'stock').tap();
   await expect(readout(page, 'moves')).toHaveText('3');
 });

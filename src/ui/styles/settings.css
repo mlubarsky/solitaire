@@ -1,3 +1,9 @@
+/*
+ * Settings panel theme: dark frosted glass (the same material as the top bar) with cream text and
+ * warm gold accents (the gold of the crowns and the treasure chest). The glass picks up a hint of
+ * whatever background is behind it, so the panel fits every table theme instead of fighting the
+ * non-green ones.
+ */
 .settings-layer {
   position: fixed;
   inset: 0;
@@ -7,11 +13,19 @@
 .settings-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.4);
   animation: backdrop-in 180ms ease-out;
 }
 
 .settings-panel {
+  --sp-text: #f3ead2;
+  --sp-muted: rgba(243, 234, 210, 0.66);
+  --sp-gold: #f2c14e;
+  --sp-gold-soft: rgba(242, 193, 78, 0.35);
+  --sp-line: rgba(242, 193, 78, 0.22);
+  --sp-tile: rgba(255, 255, 255, 0.06);
+  --sp-tile-border: rgba(255, 255, 255, 0.12);
+
   position: absolute;
   top: 0;
   bottom: 0;
@@ -20,52 +34,97 @@
   flex-direction: column;
   width: min(360px, 88vw);
   overflow-y: auto;
-  background: #fff;
-  color: #202124;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  /* A faint sheen at the top over a dark, slightly green-tinted glass. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 30%),
+    rgba(8, 20, 14, 0.8);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  color: var(--sp-text);
+  box-shadow: 6px 0 28px rgba(0, 0, 0, 0.45);
+  scrollbar-color: var(--sp-gold-soft) transparent;
+  scrollbar-width: thin;
   animation: panel-in 220ms ease-out;
+}
+
+/* Without backdrop blur, use a solid dark glass color so text stays readable. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .settings-panel {
+    background: #0f2419;
+  }
 }
 
 .settings-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 12px 6px 20px;
+  margin: 0 20px;
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--sp-line);
 }
 
 .settings-header h2 {
   margin: 0;
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .settings-close {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
+  margin-right: -8px;
   border: 0;
-  border-radius: 20px;
+  border-radius: 19px;
   background: transparent;
-  color: #5f6368;
-  font-size: 20px;
+  color: var(--sp-muted);
+  font-size: 18px;
   cursor: pointer;
 }
 
 .settings-close:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--sp-text);
+}
+
+.settings-close:focus-visible {
+  outline: 2px solid var(--sp-gold);
+  outline-offset: 1px;
 }
 
 .settings-section {
-  padding: 4px 20px 20px;
+  padding: 6px 20px 18px;
 }
 
+/* Section headings: small gold caps with a hairline running to the edge. */
 .settings-section h3 {
-  margin: 10px 0 12px;
-  color: #5f6368;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 12px;
+  color: var(--sp-gold);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+.settings-section h3::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--sp-line);
+}
+
+.settings-note {
+  margin: 0 0 14px;
+  color: var(--sp-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---- Background tiles ---- */
 
 .bg-grid {
   display: grid;
@@ -88,18 +147,32 @@
 }
 
 .bg-thumb {
+  border: 2px solid var(--sp-tile-border);
+  border-radius: 10px;
+  transition:
+    border-color 120ms,
+    box-shadow 120ms;
+}
+
+.bg-thumb {
   position: relative;
   display: block;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border: 3px solid transparent;
-  border-radius: 10px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+/* Only devices that really hover (touch screens would leave the highlight stuck after a tap). */
+@media (hover: hover) {
+  .bg-option:hover .bg-thumb {
+    border-color: rgba(242, 193, 78, 0.55);
+  }
 }
 
 .bg-option.selected .bg-thumb {
-  border-color: #1a73e8;
-  box-shadow: 0 0 0 1px #1a73e8;
+  border-color: var(--sp-gold);
+  box-shadow:
+    0 0 0 1px var(--sp-gold),
+    0 0 14px rgba(242, 193, 78, 0.35);
 }
 
 .bg-option:focus-visible {
@@ -107,8 +180,8 @@
 }
 
 .bg-option:focus-visible .bg-thumb {
-  outline: 3px solid #fbbc04;
-  outline-offset: 2px;
+  outline: 2px solid var(--sp-text);
+  outline-offset: 3px;
 }
 
 .bg-thumb-image {
@@ -127,21 +200,78 @@
   top: 6px;
   right: 6px;
   display: flex;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   padding: 3px;
-  border-radius: 12px;
-  background: #1a73e8;
-  color: #fff;
+  border-radius: 11px;
+  background: var(--sp-gold);
+  color: #10291c;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .bg-name {
   padding-left: 2px;
+  color: var(--sp-muted);
 }
 
 .bg-option.selected .bg-name {
-  color: #1a73e8;
-  font-weight: 600;
+  color: var(--sp-gold);
+  font-weight: 700;
+}
+
+/* ---- Switch ---- */
+
+.settings-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  color: var(--sp-text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.settings-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 150ms;
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--sp-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transition: transform 150ms;
+}
+
+.settings-switch input:checked + .switch-track {
+  background: var(--sp-gold);
+}
+
+.settings-switch input:checked + .switch-track::after {
+  background: #10291c;
+  transform: translateX(16px);
+}
+
+.settings-switch input:focus-visible + .switch-track {
+  outline: 2px solid var(--sp-text);
+  outline-offset: 2px;
 }
 
 @keyframes panel-in {
@@ -150,12 +280,7 @@
   }
 }
 
-.settings-note {
-  margin: 0 0 12px;
-  color: #3c4043;
-  font-size: 14px;
-  line-height: 1.45;
-}
+/* ---- God mode ---- */
 
 .god-mode-button {
   position: relative;
@@ -219,16 +344,16 @@
 }
 
 .god-mode-button:disabled {
-  background: #dadce0;
+  background: rgba(255, 255, 255, 0.08);
   box-shadow: none;
-  color: #80868b;
+  color: rgba(243, 234, 210, 0.4);
   text-shadow: none;
   cursor: default;
   animation: none;
 }
 
 .god-mode-button:focus-visible {
-  outline: 3px solid #1a73e8;
+  outline: 3px solid var(--sp-gold);
   outline-offset: 3px;
 }
 
@@ -319,54 +444,67 @@
   }
 }
 
+/* ---- Pixel-font sizes inside the panel and the god-mode bar ---- */
+
+.settings-header h2 {
+  font-size: 20px;
+}
+
+.settings-section h3 {
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.bg-name {
+  font-size: 10px;
+}
+
 .settings-switch {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  color: #3c4043;
+  font-size: 11px;
+}
+
+.settings-note {
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.god-mode-button {
   font-size: 14px;
-  cursor: pointer;
+  letter-spacing: 0;
 }
 
-.settings-switch input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+.god-banner {
+  font-size: 11px;
 }
 
-.switch-track {
-  position: relative;
-  flex: none;
-  width: 36px;
-  height: 20px;
-  border-radius: 10px;
-  background: #bdc1c6;
-  transition: background 150ms;
+.god-speed-label {
+  font-size: 10px;
 }
 
-.switch-track::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: transform 150ms;
+.god-speed-value .pixel-text {
+  display: block;
+  height: 9px;
+  width: auto;
+  fill: currentColor;
 }
 
-.settings-switch input:checked + .switch-track {
-  background: #1a73e8;
+.god-button,
+.settings-close {
+  font-size: 12px;
 }
 
-.settings-switch input:checked + .switch-track::after {
-  transform: translateX(16px);
+.settings-close .pixel-text {
+  display: block;
+  height: 13px;
+  width: auto;
+  margin: 0 auto;
+  fill: currentColor;
 }
 
-.settings-switch input:focus-visible + .switch-track {
-  outline: 3px solid #1a73e8;
-  outline-offset: 2px;
+.god-button .pixel-text {
+  display: block;
+  height: 9px;
+  width: auto;
+  margin: 0 auto;
+  fill: currentColor;
 }

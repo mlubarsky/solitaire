@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { Pixel, PixelTitle } from './title/PixelText';
 
 export interface DialogProps {
   title: string;
+  /** Show the title in the gold arcade style (the win dialog). */
+  arcadeTitle?: boolean;
   children?: ReactNode;
   actions: ReactNode;
   /** Called on Escape. */
@@ -10,7 +13,14 @@ export interface DialogProps {
 }
 
 /** In-app modal dialog. Focuses the element marked `data-autofocus` (or the first button). */
-export function Dialog({ title, children, actions, onDismiss, className = '' }: DialogProps) {
+export function Dialog({
+  title,
+  arcadeTitle = false,
+  children,
+  actions,
+  onDismiss,
+  className = '',
+}: DialogProps) {
   const titleId = useId();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -40,7 +50,14 @@ export function Dialog({ title, children, actions, onDismiss, className = '' }: 
         aria-labelledby={titleId}
       >
         <h2 id={titleId} className="dialog-title">
-          {title}
+          {arcadeTitle ? (
+            <>
+              <PixelTitle text={title} small className="dialog-arcade-title" />
+              <span className="sr-only">{title}</span>
+            </>
+          ) : (
+            <Pixel text={title} />
+          )}
         </h2>
         {children}
         <div className="dialog-actions">{actions}</div>

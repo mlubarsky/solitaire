@@ -17,7 +17,8 @@ export const readout = (name: 'score' | 'moves') => screen.getByTestId(name).tex
 
 export const tableauColumn = (n: number) =>
   screen.getByRole('group', { name: `Tableau column ${n}` });
-export const foundationPile = (n: number) => screen.getByRole('group', { name: `Foundation ${n}` });
+export const foundationPile = (n: number) =>
+  screen.getByRole('group', { name: new RegExp(`^Foundation ${n},`) });
 export const wastePile = () => screen.getByRole('group', { name: 'Waste' });
 export const stockButton = () => screen.getByRole('button', { name: /^Stock,/ });
 export const undoButton = () => screen.getByRole('button', { name: 'Undo' });

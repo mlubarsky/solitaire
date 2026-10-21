@@ -53,7 +53,7 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
-// A no-op 2D canvas context so the celebration animation can run under jsdom.
+// A no-op 2D canvas context so canvas drawing (confetti, backgrounds) can run under jsdom.
 const fakeContext = new Proxy(
   {},
   {

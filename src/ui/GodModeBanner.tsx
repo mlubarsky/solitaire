@@ -1,4 +1,5 @@
 import { GOD_MODE_FASTEST_MS, GOD_MODE_SLOWEST_MS, type GodModeStatus } from '../state/useGodMode';
+import { Pixel, PixelText } from './title/PixelText';
 
 export interface GodModeBannerProps {
   status: GodModeStatus;
@@ -29,9 +30,11 @@ export function GodModeBanner({
   if (status === 'idle') {
     return (
       <div className="god-banner" role="status" data-testid="god-banner">
-        <span className="god-text">{message}</span>
+        <span className="god-text">
+          <Pixel text={message ?? ''} />
+        </span>
         <button type="button" className="god-button" aria-label="Dismiss" onClick={onDismiss}>
-          ✕
+          <PixelText text="✕" />
         </button>
       </div>
     );
@@ -44,10 +47,12 @@ export function GodModeBanner({
         : `God mode: move ${Math.min(step + 1, total)} of ${total}`;
   return (
     <div className="god-banner active" role="status" data-testid="god-banner">
-      <span className="god-text">{text}</span>
+      <span className="god-text">
+        <Pixel text={text} />
+      </span>
       <SpeedSlider delayMs={delayMs} onChange={onDelayChange} />
       <button type="button" className="god-button" onClick={onStop}>
-        Stop
+        <Pixel text="Stop" />
       </button>
     </div>
   );
@@ -66,7 +71,9 @@ function SpeedSlider({ delayMs, onChange }: { delayMs: number; onChange: (ms: nu
   const mirror = GOD_MODE_SLOWEST_MS + GOD_MODE_FASTEST_MS;
   return (
     <label className="god-speed">
-      <span className="god-speed-label">Speed</span>
+      <span className="god-speed-label">
+        <Pixel text="Speed" />
+      </span>
       <input
         type="range"
         min={GOD_MODE_FASTEST_MS}
@@ -77,7 +84,7 @@ function SpeedSlider({ delayMs, onChange }: { delayMs: number; onChange: (ms: nu
         onChange={(event) => onChange(mirror - Number(event.target.value))}
       />
       <span className="god-speed-value" aria-hidden="true">
-        {formatPace(delayMs)}
+        <PixelText text={formatPace(delayMs)} />
       </span>
     </label>
   );

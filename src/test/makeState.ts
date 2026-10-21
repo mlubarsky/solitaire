@@ -1,4 +1,11 @@
-import { assertValidState, createDeck, parseCardId, type Card, type GameState } from '../engine';
+import {
+  assertValidState,
+  createDeck,
+  foundationIndexOf,
+  parseCardId,
+  type Card,
+  type GameState,
+} from '../engine';
 
 /**
  * Card notation for fixtures: a card id such as "H7", "SA", "D10", "CK".
@@ -48,9 +55,21 @@ export function makeState(spec: StateSpec = {}): GameState {
   const columns = Array.from({ length: 7 }, (_, i) =>
     (spec.tableau?.[i] ?? []).map((s) => take(s, true)),
   );
-  const foundations = Array.from({ length: 4 }, (_, i) =>
-    (spec.foundations?.[i] ?? []).map((s) => take(s, true)),
-  );
+  // Each suit has its own foundation (♠ ♥ ♦ ♣): every listed pile goes to its suit's slot,
+  // whatever position it was listed in.
+  const foundations: Card[][] = [[], [], [], []];
+  for (const pile of spec.foundations ?? []) {
+    const cards = pile.map((s) => take(s, true));
+    const first = cards[0];
+    if (first === undefined) continue;
+    const slot =
+      spec.validate === false
+        ? foundations.findIndex((p) => p.length === 0)
+        : foundationIndexOf(first.suit);
+    if ((foundations[slot] as Card[]).length > 0)
+      throw new Error(`Two ${first.suit} foundations in fixture`);
+    foundations[slot] = cards;
+  }
   const waste = (spec.waste ?? []).map((s) => take(s, true));
   let stock: Card[];
   if (spec.stock) {

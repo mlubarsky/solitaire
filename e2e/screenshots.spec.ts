@@ -32,14 +32,13 @@ test('11. screenshots: initial deal, mid-drag, win dialog (desktop)', async ({ p
   await page.screenshot({ path: `${DIR}/win-dialog.png` });
 });
 
-test('11b. screenshots: celebration and phone layout', async ({ page }) => {
+test('11b. screenshots: confetti and phone layout', async ({ page }) => {
   await openGame(page, 42);
   await loadState(page, nearWonState());
   await card(page, 'SK').click();
-  await expect(page.getByTestId('celebration')).toBeVisible();
-  await page.waitForTimeout(2500);
-  await page.screenshot({ path: `${DIR}/celebration.png` });
-  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('confetti')).toBeVisible();
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${DIR}/confetti.png` });
   await expect(page.getByRole('dialog', { name: 'You win!' })).toBeVisible();
 
   await page.setViewportSize({ width: 375, height: 667 });

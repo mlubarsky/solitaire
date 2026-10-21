@@ -1,3 +1,7 @@
+/*
+ * Dialogs (win, new-game confirmation) share the settings panel's theme: dark frosted glass,
+ * cream text and gold accents.
+ */
 .dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -6,42 +10,78 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.4);
   animation: backdrop-in 160ms ease-out;
 }
 
 .dialog {
+  --dl-text: #f3ead2;
+  --dl-muted: rgba(243, 234, 210, 0.66);
+  --dl-gold: #f2c14e;
+
   width: min(360px, 100%);
-  padding: 24px 24px 16px;
-  border-radius: 12px;
-  background: #fff;
-  color: #202124;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  padding: 24px 24px 18px;
+  border: 1px solid rgba(242, 193, 78, 0.35);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 40%),
+    rgba(8, 20, 14, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  color: var(--dl-text);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(0, 0, 0, 0.2);
   animation: dialog-in 180ms ease-out;
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .dialog {
+    background: #0f2419;
+  }
+}
+
 .dialog-title {
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 500;
+  margin: 0 0 12px;
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+/* "YOU WIN!" in the gold arcade style of the title screen. */
+.dialog-arcade-title {
+  display: block;
+  width: min(82%, 280px);
+  height: auto;
+  margin: 2px auto 0;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3));
+}
+
+.win-dialog {
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 28px rgba(242, 193, 78, 0.25);
 }
 
 .win-dialog .dialog-title {
-  font-size: 28px;
+  color: var(--dl-gold);
+  font-size: 32px;
+  letter-spacing: 0.02em;
   text-align: center;
+  text-shadow: 0 2px 10px rgba(242, 193, 78, 0.35);
 }
 
 .dialog-text {
   margin: 0 0 16px;
-  color: #5f6368;
-  font-size: 15px;
+  color: var(--dl-muted);
+  font-size: 12px;
+  line-height: 1.8;
 }
 
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 
 .win-dialog .dialog-actions {
@@ -49,46 +89,59 @@
 }
 
 .dialog .btn {
-  border: 0;
-  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid rgba(243, 234, 210, 0.25);
+  border-radius: 999px;
   background: transparent;
-  color: #1a73e8;
+  color: var(--dl-text);
+  font-weight: 600;
 }
 
 .dialog .btn:hover:not(:disabled) {
-  background: rgba(26, 115, 232, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.dialog .btn-primary,
+.dialog .btn-primary {
+  border-color: transparent;
+  background: var(--dl-gold);
+  color: #10291c;
+}
+
 .dialog .btn-primary:hover:not(:disabled) {
-  background: #1a73e8;
-  color: #fff;
+  background: #f6cf6e;
 }
 
-.dialog .btn-primary:hover:not(:disabled) {
-  background: #1765cc;
+.dialog .btn:focus-visible {
+  outline: 2px solid var(--dl-text);
+  outline-offset: 2px;
 }
 
+/* Score and moves as two small tiles. */
 .win-stats {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin: 16px 0 8px;
+  gap: 10px;
+  margin: 18px 0 6px;
   text-align: center;
 }
 
+.win-stats > div {
+  padding: 10px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .win-stats dt {
-  color: #5f6368;
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  color: var(--dl-muted);
+  font-size: 10px;
 }
 
 .win-stats dd {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
+  color: var(--dl-text);
   font-size: 22px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 @keyframes backdrop-in {

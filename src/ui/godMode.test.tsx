@@ -18,7 +18,7 @@ import {
   stockButton,
   undoButton,
 } from '../test/renderApp';
-import { CELEBRATION_MAX_MS } from './Celebration';
+import { CONFETTI_MAX_MS } from './Confetti';
 
 /** Four moves to win (two foundation plays, a draw, the drawn King); no auto-complete. */
 const fourMoves = () =>
@@ -81,7 +81,7 @@ describe('god mode', () => {
     renderApp({ seed: 1 });
     openSettings();
     expect(within(panel()).getByRole('heading', { name: 'God mode' })).toBeInTheDocument();
-    expect(panel()).toHaveTextContent(/half a second per move/);
+    expect(panel()).toHaveTextContent(/Let the computer play this game for you/);
     expect(godButton()).toBeEnabled();
     expect(godButton()).toHaveTextContent(/^God mode$/);
     expect(document.body.textContent).not.toContain('⚡');
@@ -94,7 +94,7 @@ describe('god mode', () => {
     expect(slider).toHaveAttribute('min', String(GOD_MODE_FASTEST_MS));
     expect(slider).toHaveAttribute('max', String(GOD_MODE_SLOWEST_MS));
     expect(slider).toHaveAttribute('aria-valuetext', '0.5 s per move');
-    expect(banner()).toHaveTextContent('0.5 s');
+    expect(banner()!.querySelector('[data-text="0.5 s"]')).toBeInTheDocument();
     expect(document.body.textContent).not.toContain('⚡');
 
     // All the way right: nearly instant.
@@ -107,7 +107,7 @@ describe('god mode', () => {
 
     // All the way left: one move per second.
     fireEvent.change(slider, { target: { value: String(GOD_MODE_FASTEST_MS) } });
-    expect(banner()).toHaveTextContent('1 s');
+    expect(banner()!.querySelector('[data-text="1 s"]')).toBeInTheDocument();
     advance(GOD_MODE_SLOWEST_MS - 1);
     expect(readout('moves')).toBe('1');
     advance(1);
@@ -158,7 +158,7 @@ describe('god mode', () => {
     for (let i = 2; i <= 4; i++) advance(GOD_MODE_STEP_MS);
     expect(readout('moves')).toBe('4');
     expect(banner()).toBeNull();
-    for (let t = 0; t < CELEBRATION_MAX_MS; t += 500) advance(500);
+    for (let t = 0; t < CONFETTI_MAX_MS; t += 500) advance(500);
     expect(screen.getByRole('dialog', { name: /You win/ })).toBeInTheDocument();
     expectNoClock();
   });
@@ -233,7 +233,7 @@ describe('god mode', () => {
         stock: [],
       }),
     });
-    for (let t = 0; t < CELEBRATION_MAX_MS; t += 500) advance(500);
+    for (let t = 0; t < CONFETTI_MAX_MS; t += 500) advance(500);
     openSettings();
     expect(godButton()).toBeDisabled();
   });

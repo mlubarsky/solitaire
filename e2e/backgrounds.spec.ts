@@ -25,7 +25,7 @@ test('20. pixel backgrounds animate, and the settings switch freezes them', asyn
   await page.getByRole('button', { name: 'Settings' }).click();
   const toggle = page.getByRole('switch', { name: 'Animate backgrounds' });
   await expect(toggle).toBeChecked();
-  await page.getByText('Animate backgrounds').click();
+  await page.locator('.settings-switch').click();
   await expect(toggle).not.toBeChecked();
   await page.keyboard.press('Escape');
   const still = await snapshot(page);

@@ -19,8 +19,10 @@ export function nextAutoCompleteMove(state: GameState): Move | null {
   state.tableau.forEach((column, col) => {
     const card = column[column.length - 1];
     if (card === undefined || card.rank >= bestRank) return;
-    const to = ALL_FOUNDATIONS.find((f) =>
-      canPlaceOnFoundation(card as Card, getPile(state, f) as readonly Card[]),
+    const to = ALL_FOUNDATIONS.find(
+      (f) =>
+        f.kind === 'foundation' &&
+        canPlaceOnFoundation(card as Card, getPile(state, f) as readonly Card[], f.index),
     );
     if (to === undefined) return;
     bestRank = card.rank;

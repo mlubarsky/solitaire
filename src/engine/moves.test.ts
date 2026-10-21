@@ -114,9 +114,16 @@ describe('transfers and scoring', () => {
 
   it('waste → foundation scores +10', () => {
     const g = makeState({ waste: ['HA'] });
-    const r = ok(applyMove(deepFreeze(g), transfer(WASTE, foundation(2))));
-    expect(r.state.foundations[2].map((c) => c.id)).toEqual(['HA']);
+    const r = ok(applyMove(deepFreeze(g), transfer(WASTE, foundation(1))));
+    expect(r.state.foundations[1].map((c) => c.id)).toEqual(['HA']);
     expect(r.state.score).toBe(10);
+  });
+
+  it("rejects an Ace on another suit's foundation (each suit has its own: ♠ ♥ ♦ ♣)", () => {
+    const g = makeState({ waste: ['HA'] });
+    for (const f of [0, 2, 3]) {
+      expect(rejected(g, transfer(WASTE, foundation(f)))).toMatch(/does not fit/i);
+    }
   });
 
   it('tableau → foundation scores +10', () => {
@@ -130,11 +137,11 @@ describe('transfers and scoring', () => {
 
   it('foundation → tableau scores −15, clamped at 0', () => {
     const g = makeState({ tableau: [['S4']], foundations: [upTo('H', 3)], score: 40 });
-    const r = ok(applyMove(deepFreeze(g), transfer(foundation(0), tableau(0))));
+    const r = ok(applyMove(deepFreeze(g), transfer(foundation(1), tableau(0))));
     expect(r.state.tableau[0].map((c) => c.id)).toEqual(['S4', 'H3']);
-    expect(r.state.foundations[0].map((c) => c.id)).toEqual(['HA', 'H2']);
+    expect(r.state.foundations[1].map((c) => c.id)).toEqual(['HA', 'H2']);
     expect(r.state.score).toBe(25);
-    const poor = ok(applyMove({ ...g, score: 10 }, transfer(foundation(0), tableau(0))));
+    const poor = ok(applyMove({ ...g, score: 10 }, transfer(foundation(1), tableau(0))));
     expect(poor.state.score).toBe(0);
   });
 
@@ -253,12 +260,12 @@ describe('rejected moves', () => {
   it('rejects more than one card from the waste or a foundation', () => {
     const g = makeState({ waste: ['D3', 'C5'], foundations: [upTo('H', 2)], tableau: [['S6']] });
     expect(rejected(g, transfer(WASTE, tableau(0), 2))).toMatch(/top card/i);
-    expect(rejected(g, transfer(foundation(0), tableau(0), 2))).toMatch(/top card/i);
+    expect(rejected(g, transfer(foundation(1), tableau(0), 2))).toMatch(/top card/i);
   });
 
   it('rejects foundation → foundation', () => {
     const g = makeState({ foundations: [['HA']] });
-    expect(rejected(g, transfer(foundation(0), foundation(1)))).toMatch(/between foundations/i);
+    expect(rejected(g, transfer(foundation(1), foundation(2)))).toMatch(/between foundations/i);
   });
 
   it('rejects a card that does not fit', () => {
@@ -310,11 +317,11 @@ describe('getLegalMoves', () => {
       waste: ['H2'],
     });
     const moves = getLegalMoves(g);
-    expect(moves).toContainEqual(transfer(WASTE, foundation(0)));
+    expect(moves).toContainEqual(transfer(WASTE, foundation(1)));
     expect(moves).toContainEqual(transfer(tableau(0), tableau(1), 1));
     expect(moves).toContainEqual(transfer(tableau(0), tableau(2), 2));
     expect(moves).toContainEqual(transfer(tableau(3), tableau(4), 1));
-    expect(moves).toContainEqual(transfer(foundation(1), tableau(5), 1));
+    expect(moves).toContainEqual(transfer(foundation(2), tableau(5), 1));
     expect(moves).not.toContainEqual(transfer(tableau(0), tableau(1), 3));
     expect(moves).not.toContainEqual(transfer(tableau(0), tableau(1), 2));
     for (const m of moves) ok(applyMove(g, m));
