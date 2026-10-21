@@ -1,0 +1,30 @@
+import { color } from './deck';
+import type { Card, Pile } from './types';
+
+/**
+ * Can `card` (the bottom card of a moving stack) be placed on a tableau column whose
+ * top card is `target` (undefined = empty column)?
+ */
+export function canStackOnTableau(card: Card, target: Card | undefined): boolean {
+  if (target === undefined) return card.rank === 13;
+  if (!target.faceUp) return false;
+  return color(card) !== color(target) && target.rank === card.rank + 1;
+}
+
+/** Can `card` be placed on `foundationPile`? */
+export function canPlaceOnFoundation(card: Card, foundationPile: Pile): boolean {
+  const top = foundationPile[foundationPile.length - 1];
+  if (top === undefined) return card.rank === 1;
+  return top.suit === card.suit && card.rank === top.rank + 1;
+}
+
+/** Is `pile[index..]` a face-up, alternating-color, descending run that may be picked up? */
+export function isMovableStack(pile: Pile, index: number): boolean {
+  if (!Number.isInteger(index) || index < 0 || index >= pile.length) return false;
+  for (let i = index; i < pile.length; i++) {
+    const card = pile[i] as Card;
+    if (!card.faceUp) return false;
+    if (i > index && !canStackOnTableau(card, pile[i - 1] as Card)) return false;
+  }
+  return true;
+}
