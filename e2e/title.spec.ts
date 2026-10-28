@@ -12,10 +12,16 @@ test.describe('title screen', () => {
     const title = page.getByTestId('title-screen');
     await expect(title).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Solitaire' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Play' })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeFocused();
     await expect(page.getByTestId('board')).toHaveCount(0);
 
-    // The background is animated, and the tables cycle (or can be picked with the dots).
+    // It opens on the saved table (Classic green for a new player); the arrows pick another.
+    await expect(page.getByText('Showing the Classic green table')).toBeAttached();
+    await expect(title.locator('.title-bg-scene.current.background-felt')).toBeVisible();
+    await page.getByRole('button', { name: 'Next table' }).click();
+    await expect(page.getByText('Showing the Night city table')).toBeAttached();
+
+    // Pixel tables animate.
     const canvas = title.locator('canvas.title-bg-scene.current');
     const before = await canvas.evaluate((c: HTMLCanvasElement) => c.toDataURL());
     await page.waitForTimeout(600);
@@ -31,6 +37,10 @@ test.describe('title screen', () => {
     await expect(title).toHaveCount(0);
     await expect(page.getByTestId('board')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Stock, 24 cards/ })).toBeVisible();
+    // The game starts on the table that was showing, and it is remembered.
+    await expect(page.getByTestId('background')).toHaveAttribute('data-background', 'ocean');
+    await page.reload();
+    await expect(page.getByText('Showing the Deep sea table')).toBeAttached();
   });
 
   test('24. a deal link skips the title screen; reduced motion starts at once', async ({
@@ -42,7 +52,7 @@ test.describe('title screen', () => {
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
-    await page.getByRole('button', { name: 'Play' }).click();
+    await page.getByRole('button', { name: 'Play', exact: true }).click();
     await expect(page.getByTestId('board')).toBeVisible();
   });
 });
@@ -52,12 +62,12 @@ test.describe('title screen on a phone', () => {
 
   test('25. fits a phone, and tapping Play starts a game', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
     const scroll = await page.evaluate(() => document.documentElement.scrollWidth);
     expect(scroll).toBeLessThanOrEqual(375);
     await page.waitForTimeout(1000);
     await page.screenshot({ path: `${DIR}/title-screen-phone.png` });
-    await page.getByRole('button', { name: 'Play' }).tap();
+    await page.getByRole('button', { name: 'Play', exact: true }).tap();
     await expect(page.getByTestId('board')).toBeVisible();
   });
 });

@@ -219,6 +219,88 @@
   font-weight: 700;
 }
 
+/* ---- Quick table picker (palette button) ---- */
+
+.table-picker-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 3500;
+}
+
+/* Invisible: the popover leaves the table in view, so you see each pick on the real board. */
+.table-picker-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.table-picker {
+  --sp-text: #f3ead2;
+  --sp-muted: rgba(243, 234, 210, 0.66);
+  --sp-gold: #f2c14e;
+  --sp-tile-border: rgba(255, 255, 255, 0.12);
+
+  position: absolute;
+  top: calc(var(--topbar-h, 56px) + 8px);
+  left: 12px;
+  width: min(420px, calc(100vw - 24px));
+  max-height: calc(100dvh - var(--topbar-h, 56px) - 20px);
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  border: 1px solid rgba(242, 193, 78, 0.35);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 40%),
+    rgba(8, 20, 14, 0.86);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  color: var(--sp-text);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  transform-origin: 40px 0;
+  animation: picker-in 160ms ease-out;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .table-picker {
+    background: #0f2419;
+  }
+}
+
+.table-picker h2 {
+  margin: 0 0 12px;
+  color: var(--sp-gold);
+  font-size: 12px;
+}
+
+.bg-grid-compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 10px;
+}
+
+.bg-grid-compact .bg-thumb {
+  border-radius: 8px;
+}
+
+.bg-grid-compact .bg-check {
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  padding: 2px;
+}
+
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-picker {
+    animation: none;
+  }
+}
+
 /* ---- Switch ---- */
 
 .settings-switch {

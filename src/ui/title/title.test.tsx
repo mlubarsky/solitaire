@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { STORAGE_KEY } from '../../themes/useBackground';
 import { renderApp } from '../../test/renderApp';
 import { bitmapWidth } from '../cards/pixelGlyphs';
 import { dilate, rowsOnly, SMALL_FONT, textBitmap, TITLE_FONT } from './pixelFont';
@@ -31,7 +32,9 @@ describe('pixel fonts', () => {
     for (const text of [
       'KLONDIKE · DRAW ONE',
       'PRESS ENTER',
-      'TABLE THEMES',
+      'PLAY ON',
+      'HOW TO PLAY',
+      '◀ ▶',
       ...SHOWCASE.map((t) => t.name),
     ]) {
       expect(() => textBitmap(text, SMALL_FONT)).not.toThrow();
@@ -84,70 +87,98 @@ describe('TitleScreen', () => {
   afterEach(() => vi.useRealTimers());
 
   const liveText = () => screen.getByText(/^Showing the/).textContent;
+  const renderTitle = (props: Partial<Parameters<typeof TitleScreen>[0]> = {}) =>
+    render(
+      <TitleScreen table="classic" onPlay={vi.fn()} reducedMotion={false} animate {...props} />,
+    );
 
   it('shows the title, a fan of cards and a focused Play button', () => {
-    const { container } = render(<TitleScreen onPlay={vi.fn()} reducedMotion={false} animate />);
+    const { container } = renderTitle();
     expect(screen.getByRole('heading', { name: 'Solitaire' })).toBeInTheDocument();
     expect(container.querySelectorAll('.title-card svg.card-face')).toHaveLength(4);
     expect(screen.getByRole('button', { name: 'Play' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveAccessibleDescription(
+      'Starts on the Classic green table',
+    );
   });
 
-  it('cycles through every pixel table, crossfading from the previous one', () => {
-    const { container } = render(<TitleScreen onPlay={vi.fn()} reducedMotion={false} animate />);
-    const scenes = () => container.querySelectorAll('.title-bg canvas').length;
-    expect(liveText()).toBe(`Showing the ${SHOWCASE[0]!.name} table`);
+  it('starts on the saved table and cycles through all six, crossfading', () => {
+    const { container } = renderTitle({ table: 'forest' });
+    const scenes = () => container.querySelectorAll('.title-bg .title-bg-scene').length;
+    const start = SHOWCASE.findIndex((t) => t.id === 'forest');
+    expect(SHOWCASE).toHaveLength(6);
+    expect(liveText()).toBe('Showing the Woodland table');
     expect(scenes()).toBe(1);
     advance(SHOWCASE_MS);
-    expect(liveText()).toBe(`Showing the ${SHOWCASE[1]!.name} table`);
+    expect(liveText()).toBe(`Showing the ${SHOWCASE[start + 1]!.name} table`);
     expect(scenes()).toBe(2); // the old one stays under the new one while it fades in
     advance(SHOWCASE_FADE_MS);
     expect(scenes()).toBe(1);
-    for (let i = 2; i < SHOWCASE.length; i++) advance(SHOWCASE_MS);
     advance(SHOWCASE_MS);
     expect(liveText()).toBe(`Showing the ${SHOWCASE[0]!.name} table`); // wraps around
+    expect(container.querySelector('.title-bg-scene.background-felt')).not.toBeNull();
   });
 
-  it('the dots jump to a table and mark it current', () => {
-    render(<TitleScreen onPlay={vi.fn()} reducedMotion={false} animate />);
+  it('the dots pick a table and stop the cycling', () => {
+    renderTitle();
     const last = SHOWCASE[SHOWCASE.length - 1]!;
     const dot = screen.getByRole('button', { name: `Show the ${last.name} table` });
     fireEvent.click(dot);
     expect(liveText()).toBe(`Showing the ${last.name} table`);
     expect(dot).toHaveAttribute('aria-current', 'true');
     fireEvent.click(dot); // already showing: nothing changes
+    advance(SHOWCASE_MS * 3);
     expect(liveText()).toBe(`Showing the ${last.name} table`);
   });
 
-  it('Play fades to black, then starts the game once', () => {
+  it('the arrows and ←/→ step through the tables, wrapping around', () => {
+    renderTitle();
+    fireEvent.click(screen.getByRole('button', { name: 'Previous table' }));
+    expect(liveText()).toBe(`Showing the ${SHOWCASE[SHOWCASE.length - 1]!.name} table`);
+    fireEvent.click(screen.getByRole('button', { name: 'Next table' }));
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(liveText()).toBe(`Showing the ${SHOWCASE[1]!.name} table`);
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(liveText()).toBe(`Showing the ${SHOWCASE[0]!.name} table`);
+    advance(SHOWCASE_MS * 2); // picked: no more cycling
+    expect(liveText()).toBe(`Showing the ${SHOWCASE[0]!.name} table`);
+  });
+
+  it('Play fades to black, then starts the game once, on the table showing', () => {
     const onPlay = vi.fn();
-    const { container } = render(<TitleScreen onPlay={onPlay} reducedMotion={false} animate />);
+    const { container } = renderTitle({ onPlay });
+    fireEvent.click(screen.getByRole('button', { name: 'Next table' }));
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
     expect(container.querySelector('.title-screen')).toHaveClass('leaving');
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+    fireEvent.keyDown(window, { key: 'ArrowRight' }); // too late to change the table
     advance(LEAVE_MS - 1);
     expect(onPlay).not.toHaveBeenCalled();
     advance(1);
     expect(onPlay).toHaveBeenCalledTimes(1);
+    expect(onPlay).toHaveBeenCalledWith(SHOWCASE[1]!.id);
   });
 
   it('Enter starts the game; with reduced motion it starts at once', () => {
     const onPlay = vi.fn();
-    const { container } = render(<TitleScreen onPlay={onPlay} reducedMotion animate />);
+    const { container } = renderTitle({ onPlay, reducedMotion: true });
     expect(container.querySelector('.title-screen')).toHaveClass('reduced-motion');
     fireEvent.keyDown(window, { key: 'a' });
     expect(onPlay).not.toHaveBeenCalled();
     fireEvent.keyDown(window, { key: 'Enter' });
-    expect(onPlay).toHaveBeenCalledTimes(1);
+    expect(onPlay).toHaveBeenCalledWith('classic');
   });
 });
 
 describe('App start-up', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    window.localStorage.clear();
   });
   afterEach(() => {
     vi.useRealTimers();
     window.history.replaceState(null, '', '/');
+    window.localStorage.clear();
   });
 
   it('opens on the title screen, and Play deals a game', () => {
@@ -161,6 +192,17 @@ describe('App start-up', () => {
     expect(screen.getByRole('button', { name: /^Stock, 24 cards/ })).toBeInTheDocument();
   });
 
+  it('the game starts on the table picked on the title screen, and remembers it', () => {
+    window.localStorage.setItem(STORAGE_KEY, 'aurora');
+    renderApp();
+    expect(liveTitleText()).toBe('Showing the Aurora table');
+    fireEvent.click(screen.getByRole('button', { name: 'Next table' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+    advance(LEAVE_MS);
+    expect(screen.getByTestId('background')).toHaveAttribute('data-background', 'ice-mountains');
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('ice-mountains');
+  });
+
   it('a deal link (?seed=) or a given seed skips the title screen', () => {
     window.history.replaceState(null, '', '/?seed=7');
     const { unmount } = renderApp();
@@ -171,3 +213,5 @@ describe('App start-up', () => {
     expect(screen.queryByTestId('title-screen')).toBeNull();
   });
 });
+
+const liveTitleText = () => screen.getByText(/^Showing the/).textContent;

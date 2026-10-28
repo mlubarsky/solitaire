@@ -192,6 +192,22 @@ Standard Windows/Google-style scoring for draw-1:
     "Classic green"). It is restored on reload.
   - While the panel is open, game input (clicks/drags on the board, Ctrl+Z)
     is ignored.
+- **Change table** (a paint-palette icon button right after the gear, `aria-label="Change
+  table"`, `aria-expanded`): opens a small glass/gold popover under the top bar, "Choose a
+  table", with the same six thumbnails as Settings in a 3×2 radio group. A pick applies at once
+  (and is saved) and the popover stays open, with no dimming, so each table can be tried on the
+  live board. Escape or a click outside closes it; focus starts on the current table and
+  returns to the palette button. Below 380 px wide the header hides the logo mark to make room.
+- **How to play** (a "?" icon button after the palette button, `aria-label="How to play"`; also a
+  "HOW TO PLAY" outlined button under PLAY on the title screen): opens a dialog in the same
+  glass/gold theme with the Easy-mode rules in short pixel-font lines, in five sections: Goal
+  (with a mini A-2-3 of hearts), Columns (with a mini K-Q-J-10 cascade), The deck, Handy
+  (click/drag, undo, changing the table, auto-finish) and Scoring (a table built from the engine's points). Only
+  the rules scroll; "Got it" stays visible. Closes with Got it or Escape, and focus returns to
+  the button that opened it. Only one of Settings, Change table and How to play is open at a
+  time. While any is open the board and Ctrl+Z are ignored; while the rules are open on the
+  title screen, its Enter and arrow shortcuts are too. On screens 420 px wide or less,
+  each picture moves under its text.
 - **God mode** (settings section below the backgrounds): a "God mode" button that makes the computer finish the current game.
   The button has no icon or emoji; it is styled with a loud, animated
   multicolor gradient (static under reduced motion).
@@ -237,10 +253,13 @@ Standard Windows/Google-style scoring for draw-1:
 - The app opens on an 8-bit title screen (unless a specific deal was asked for with `?seed=`,
   which goes straight to the board). Pressing **PLAY** (or Enter anywhere; tap on phones) fades
   to black in a few hard steps (~0.45 s) and shows a freshly dealt game.
-- **Background showcase:** the five animated pixel tables cycle full-screen, 5 s each, with a
-  stepped ~0.9 s crossfade, darkened at the edges (vignette) with faint CRT scanlines. At the
-  bottom: a gold "TABLE THEMES" caption, the current table's name, and one square dot per
-  table to jump to it.
+- **Table showcase and pick:** all six tables (Classic green felt and the five animated pixel
+  scenes) cycle full-screen, 5 s each, with a stepped ~0.9 s crossfade, darkened at the edges
+  (vignette) with faint CRT scanlines. It starts on the saved table. At the bottom: a gold
+  "PLAY ON" caption, "◀ TABLE NAME ▶" arrow buttons, and one square dot per table. The arrows,
+  dots or ←/→ keys pick a table, which stops the cycling. **The game starts on the table that
+  is showing when Play is pressed**, and that becomes the saved background. Play's accessible
+  description names the table.
 - **Center:** a fan of four pixel cards (A♠, K♥, Q♣, J♦) gently bobbing; the "SOLITAIRE" title
   in a bold 9-pixel-tall pixel font (gold with a light top band, darker bottom band, dark
   outline and a drop shadow); "KLONDIKE · DRAW ONE" in a 5×7 pixel font; a chunky gold pixel

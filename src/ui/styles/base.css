@@ -312,6 +312,17 @@ body {
   }
 }
 
+/* The narrowest phones: four header icons leave no room for the logo mark. */
+@media (max-width: 379px) {
+  .logo-mark {
+    display: none;
+  }
+
+  .topbar-left {
+    gap: 4px;
+  }
+}
+
 /* ---- Board and piles ---- */
 
 .table {

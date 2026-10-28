@@ -35,6 +35,7 @@ src/
     Confetti.tsx          # canvas confetti burst on a win
     WinDialog.tsx
     ConfirmDialog.tsx
+    RulesDialog.tsx       # "How to play": short rules, mini cards, scoring from POINTS
     styles/*.css
   themes/
     themes.ts             # registry: { id, name, kind: 'felt' | 'pixel', scene?, palette? }
@@ -43,8 +44,10 @@ src/
     scene.ts              # layered scenes + createAnimator (cached static layers, 12 fps frames)
     useBackground.ts      # selected theme + animate switch, localStorage persistence (try/catch)
   ui/settings/
-    SettingsButton.tsx    # ☰ in TopBar
-    SettingsPanel.tsx     # slide-in panel, background radio grid, focus management
+    SettingsButton.tsx    # gear in TopBar
+    SettingsPanel.tsx     # slide-in panel: backgrounds, animate switch, god mode
+    BackgroundPicker.tsx  # the six-table radio group (settings panel + quick picker)
+    TablePicker.tsx       # palette button and its quick "Choose a table" popover
   ui/background/
     PixelBackground.tsx   # renders a scene buffer to a <canvas>, pixelated, cover
     FeltBackground.tsx

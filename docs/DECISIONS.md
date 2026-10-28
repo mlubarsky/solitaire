@@ -323,3 +323,28 @@ image-rendering: pixelated` keeps them crisp and bottom-anchored at any size. Th
 - `PixelTitle` takes either font, so the header logo (bold font) and "YOU WIN!" (5×7 font, which
   has the letters the bold one lacks) share the gold outlined arcade look.
 - The logo mark and favicon are now a 15×14 pixel-art card pair instead of a smooth vector.
+
+## How to play (revision 18)
+
+- Google Solitaire has no rules page; we add one because the 8-bit title screen and pixel font
+  make the game feel less like a familiar default. It is reachable from the header ("?") and
+  the title screen, never shown automatically.
+- Player words over jargon: "suit piles" (foundations), "columns" (tableau), "the deck"
+  (stock/waste). The scoring rows are generated from `POINTS`, so the table can't drift from
+  the engine; Waste→Foundation and Tableau→Foundation are one row ("Card to a suit pile", +10).
+- Pixel text sizes in the dialog are 16 px (headings) and 12 px (body) so each font pixel is a
+  whole number of device pixels (2 px at 1×, 3 px at 2×) and the letters stay crisp.
+- The font gained `+`.
+
+## Making table backgrounds discoverable (revision 19)
+
+- **Title screen picks the table.** The showcase now includes Classic green and opens on the
+  saved table, so a player who just presses Play keeps their table (unless they wait 5 s and it
+  cycles on). Whatever is showing when Play is pressed is used, as agreed with the user; any
+  manual pick stops the cycling so the choice doesn't slip away.
+- **Palette button in the header** opens a quick picker that reuses the settings panel's
+  thumbnail radio group (`BackgroundPicker`). It doesn't close on a pick and has no dim
+  backdrop, so tables can be compared on the real board. The settings section stays too.
+- **Rules mention it** under Handy.
+- The top bar's panels share one `overlay` state, so only one is ever open.
+- The small font gained `◀`.

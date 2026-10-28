@@ -321,3 +321,29 @@ Use `?seed=` and `window.__solitaire.loadState` for deterministic setups.
 - E2E 23–25: title visible and animated, dots work, Enter enters the game; a deal link skips
   it and reduced motion starts at once; phone fit and tap to play. Screenshots
   `title-screen.png`, `title-screen-deep-sea.png`, `title-screen-phone.png`.
+
+## K. How to play (revision 18)
+
+- `src/ui/rules.test.tsx`: the ? button opens the dialog with Goal, Columns, The deck, Handy and
+  Scoring, focusing Got it; Got it and Escape close it and focus returns to ?; the scoring
+  table matches `POINTS`; the board and Ctrl+Z are locked while it is open; opening it closes
+  settings; on the title screen it opens, and Enter doesn't start the game behind it.
+- E2E 26 (`e2e/help.spec.ts`): opens from the header and closes back to ?; fits a 390×760 phone with Got it on
+  screen; opens from the title screen and Enter closes it without starting. Screenshots
+  `rules.png`, `rules-phone.png`.
+
+## L. Picking tables (revision 19)
+
+- `src/ui/settings/tablePicker.test.tsx`: the palette button opens six radios with the current
+  one focused; a pick applies and saves and the picker stays open; Home/arrows work; Escape
+  and an outside click close it with focus back on the palette button; the board and Ctrl+Z
+  are locked; opening Settings closes it.
+- `src/ui/title/title.test.tsx`: starts on the saved table and cycles all six (felt
+  included); dots and the ◀/▶ buttons and ←/→ keys pick (wrapping) and stop the cycling;
+  Play reports the showing table, and the table can't change once leaving; the App starts the
+  game on the picked table and saves it; Play's description names the table.
+- E2E 23 now checks the felt start, the Next arrow, that Deep sea picked on the title is the
+  game's background, and that it is still shown first after a reload. E2E 27: the quick
+  picker applies a table on the live board, closes on an outside click, and fits a 340 px
+  phone with no horizontal scroll. Screenshots `table-picker.png`, `table-picker-phone.png`.
+

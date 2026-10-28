@@ -1,8 +1,7 @@
-import { useEffect, useId, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useId } from 'react';
 import { Pixel, PixelText } from '../title/PixelText';
-import { THEMES, type Theme, type ThemeId } from '../../themes/themes';
-import { FeltBackground } from '../background/FeltBackground';
-import { PixelCanvas } from '../background/PixelBackground';
+import type { ThemeId } from '../../themes/themes';
+import { BackgroundPicker } from './BackgroundPicker';
 
 export interface SettingsPanelProps {
   background: ThemeId;
@@ -17,14 +16,6 @@ export interface SettingsPanelProps {
   onStartGodMode: () => void;
   onStopGodMode: () => void;
   onClose: () => void;
-}
-
-function Thumbnail({ theme }: { theme: Theme }) {
-  return theme.scene ? (
-    <PixelCanvas scene={theme.scene} className="bg-thumb-image" />
-  ) : (
-    <FeltBackground className="bg-thumb-image background-felt" />
-  );
 }
 
 /** Slide-in settings panel with the "Table background" picker (SPEC §6). */
@@ -42,15 +33,6 @@ export function SettingsPanel({
   const godId = useId();
   const titleId = useId();
   const groupId = useId();
-  const groupRef = useRef<HTMLDivElement>(null);
-
-  const focusOption = (id: ThemeId) =>
-    groupRef.current?.querySelector<HTMLElement>(`[data-theme-id="${id}"]`)?.focus();
-
-  // Focus moves into the panel (to the selected option) when it opens.
-  useEffect(() => {
-    groupRef.current?.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
-  }, []);
 
   useEffect(() => {
     const onKey = (event: globalThis.KeyboardEvent) => {
@@ -59,25 +41,6 @@ export function SettingsPanel({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  const onRadioKey = (event: KeyboardEvent<HTMLDivElement>) => {
-    const index = THEMES.findIndex((t) => t.id === background);
-    const n = THEMES.length;
-    const next: Record<string, number> = {
-      ArrowRight: index + 1,
-      ArrowDown: index + 1,
-      ArrowLeft: index - 1,
-      ArrowUp: index - 1,
-      Home: 0,
-      End: n - 1,
-    };
-    const target = next[event.key];
-    if (target === undefined) return;
-    event.preventDefault();
-    const theme = THEMES[(target + n) % n] as Theme;
-    onSelectBackground(theme.id);
-    focusOption(theme.id);
-  };
 
   return (
     <div className="settings-layer">
@@ -106,46 +69,7 @@ export function SettingsPanel({
           <h3 id={groupId}>
             <Pixel text="Table background" />
           </h3>
-          <div
-            ref={groupRef}
-            className="bg-grid"
-            role="radiogroup"
-            aria-labelledby={groupId}
-            onKeyDown={onRadioKey}
-          >
-            {THEMES.map((theme) => {
-              const checked = theme.id === background;
-              return (
-                <button
-                  key={theme.id}
-                  type="button"
-                  role="radio"
-                  aria-checked={checked}
-                  tabIndex={checked ? 0 : -1}
-                  className={`bg-option${checked ? ' selected' : ''}`}
-                  data-theme-id={theme.id}
-                  onClick={() => onSelectBackground(theme.id)}
-                >
-                  <span className="bg-thumb">
-                    <Thumbnail theme={theme} />
-                    {checked && (
-                      <span className="bg-check" aria-hidden="true">
-                        <svg viewBox="0 0 24 24">
-                          <path
-                            d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </span>
-                    )}
-                  </span>
-                  <span className="bg-name">
-                    <Pixel text={theme.name} />
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <BackgroundPicker value={background} onSelect={onSelectBackground} labelledBy={groupId} />
           <label className="settings-switch">
             <input
               type="checkbox"

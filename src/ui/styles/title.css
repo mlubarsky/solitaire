@@ -168,6 +168,32 @@
   filter: brightness(1.12);
 }
 
+/* A quieter outlined button for the rules, under PLAY. */
+.title-rules {
+  padding: 8px 14px;
+  border: 2px solid rgba(243, 234, 210, 0.55);
+  background: rgba(5, 7, 10, 0.45);
+  color: var(--title-cream);
+  cursor: pointer;
+  animation: title-pop-in 500ms steps(5, end) 500ms both;
+}
+
+.title-rules .pixel-text {
+  height: clamp(9px, 1.1vw, 11px);
+}
+
+.title-rules:focus-visible {
+  outline: 2px solid var(--title-gold);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .title-rules:hover {
+    border-color: var(--title-gold);
+    color: var(--title-gold);
+  }
+}
+
 .title-hint {
   height: clamp(9px, 1.2vw, 12px);
   color: var(--title-cream);
@@ -201,6 +227,44 @@
 .title-showcase-name {
   height: clamp(14px, 2vw, 20px);
   color: var(--title-cream);
+}
+
+/* ◀ TABLE NAME ▶ */
+.title-table-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 18px);
+}
+
+.title-arrow {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid rgba(243, 234, 210, 0.55);
+  background: rgba(5, 7, 10, 0.45);
+  color: var(--title-gold);
+  cursor: pointer;
+}
+
+.title-arrow .pixel-text {
+  height: 14px;
+}
+
+.title-arrow:focus-visible {
+  outline: 2px solid var(--title-gold);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .title-arrow:hover {
+    border-color: var(--title-gold);
+  }
+}
+
+.title-arrow:active {
+  transform: translateY(1px);
 }
 
 .title-dots {
@@ -244,6 +308,7 @@
 .title-screen.reduced-motion .title-card,
 .title-screen.reduced-motion .title-logo,
 .title-screen.reduced-motion .title-play,
+.title-screen.reduced-motion .title-rules,
 .title-screen.reduced-motion .title-hint,
 .title-screen.reduced-motion .title-bg-scene.current {
   animation: none;

@@ -144,6 +144,162 @@
   line-height: 1;
 }
 
+/* ---- How to play ---- */
+
+.rules-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(500px, 100%);
+  max-height: calc(100dvh - 32px);
+  padding-bottom: 16px;
+}
+
+.rules-dialog .dialog-title {
+  color: var(--dl-gold);
+  font-size: 20px;
+}
+
+/* Only the rules scroll; the title and Got it stay put. */
+.rules-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -24px;
+  padding: 0 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.rules-section {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid rgba(243, 234, 210, 0.12);
+}
+
+.rules-section:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.rules-section.no-picture {
+  grid-template-columns: 1fr;
+}
+
+.rules-section h3 {
+  margin: 0 0 8px;
+  color: var(--dl-gold);
+  font-size: 16px;
+}
+
+.rules-section ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--dl-text);
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+/* A small gold pixel square instead of a bullet. */
+.rules-section li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.rules-section li::before {
+  content: '';
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 4px;
+  height: 4px;
+  background: var(--dl-gold);
+}
+
+/* Little card pictures: a foundation building up, or a column fanned down. */
+.rules-cards {
+  display: flex;
+  justify-content: center;
+}
+
+.mini-card {
+  --mini-w: 34px;
+
+  flex: none;
+  width: var(--mini-w);
+  aspect-ratio: 5 / 7;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 2px 4px rgba(0, 0, 0, 0.35);
+}
+
+.rules-cards-row {
+  gap: 4px;
+}
+
+.rules-cards-row .mini-card {
+  --mini-w: 28px;
+}
+
+.rules-cards-column {
+  flex-direction: column;
+  align-items: center;
+}
+
+.rules-cards-column .mini-card + .mini-card {
+  margin-top: calc(var(--mini-w) * -1.04);
+}
+
+.rules-scoring {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.rules-scoring > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rules-scoring dt {
+  color: var(--dl-text);
+}
+
+.rules-scoring dd {
+  flex: none;
+  margin: 0;
+}
+
+.rules-scoring .plus {
+  color: var(--dl-gold);
+}
+
+.rules-scoring .minus {
+  color: #f08a7a;
+}
+
+/* Narrow screens: the picture goes under the text it illustrates. */
+@media (max-width: 420px) {
+  .rules-section {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .rules-cards {
+    order: 1;
+  }
+}
+
 @keyframes backdrop-in {
   from {
     opacity: 0;

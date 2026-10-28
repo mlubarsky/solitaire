@@ -2,6 +2,7 @@ import { memo, type Ref } from 'react';
 import { Pixel } from './title/PixelText';
 import { Logo } from './Logo';
 import { SettingsButton } from './settings/SettingsButton';
+import { TableButton } from './settings/TablePicker';
 
 export interface TopBarProps {
   score: number;
@@ -13,6 +14,9 @@ export interface TopBarProps {
   settingsOpen: boolean;
   onToggleSettings: () => void;
   settingsButtonRef: Ref<HTMLButtonElement>;
+  onOpenRules: () => void;
+  tablePickerOpen: boolean;
+  onToggleTablePicker: () => void;
 }
 
 function Stat({ label, value, testId }: { label: string; value: string; testId: string }) {
@@ -48,6 +52,17 @@ function UndoAllIcon() {
   );
 }
 
+function HelpIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
 function NewGameIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -69,6 +84,9 @@ function TopBarView({
   settingsOpen,
   onToggleSettings,
   settingsButtonRef,
+  onOpenRules,
+  tablePickerOpen,
+  onToggleTablePicker,
 }: TopBarProps) {
   return (
     <header className="topbar">
@@ -78,6 +96,15 @@ function TopBarView({
           expanded={settingsOpen}
           onClick={onToggleSettings}
         />
+        <TableButton expanded={tablePickerOpen} onClick={onToggleTablePicker} />
+        <button
+          type="button"
+          className="btn btn-icon rules-button"
+          aria-label="How to play"
+          onClick={onOpenRules}
+        >
+          <HelpIcon />
+        </button>
         <Logo />
       </div>
       <div className="stats">
