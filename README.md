@@ -5,7 +5,7 @@ React, TypeScript and Vite.
 
 ## Requirements
 
-- Node.js 22.13+ or 24+ (`.nvmrc` pins 24)
+- Node.js 24 (pinned in `.nvmrc` and `package.json` engines)
 - npm 10+
 
 ## Setup
